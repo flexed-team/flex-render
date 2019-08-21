@@ -7,8 +7,8 @@
 const TGAColor white = TGAColor(255, 255, 255, 255);
 const TGAColor red   = TGAColor(255, 0,   0,   255);
 Model *model = NULL;
-const int width  = 800;
-const int height = 800;
+const int width  = 100;
+const int height = 100;
 
 void line(int x0, int y0, int x1, int y1, TGAImage &image, TGAColor color)
 {	
@@ -49,7 +49,15 @@ void line(int x0, int y0, int x1, int y1, TGAImage &image, TGAColor color)
 	}
 }
 
-int main(int argc, char** argv) {
+void triangle(Vec2f &v1, Vec2f &v2, Vec2f &v3, TGAImage &image, TGAColor color)
+{
+	line(v1.x, v1.y, v2.x, v2.y, image, color);
+	line(v2.x, v2.y, v3.x, v3.y, image, color);
+	line(v3.x, v3.y, v1.x, v1.y, image, color);
+}
+
+int main(int argc, char** argv) 
+{
 		if(argc == 2)
 			model = new Model(argv[1]);
 		else
@@ -57,7 +65,7 @@ int main(int argc, char** argv) {
 	
         TGAImage image(width, height, TGAImage::RGB);
 		
-		for (int i = 0; i < model->nfaces(); i++) 
+		/*for (int i = 0; i < model->nfaces(); i++) 
 		{
 			std::vector<int> face = model->face(i);
 			
@@ -73,7 +81,11 @@ int main(int argc, char** argv) {
 				
 				line(x0, y0, x1, y1, image, white);
 			}
-		}
+		}*/
+		Vec2f v0(25,70);
+		Vec2f v1(50,85);
+		Vec2f v2(85,25);
+		triangle(v0, v1 ,v2, image, red);
 		
         image.flip_vertically(); 
         image.write_tga_file("output.tga");
