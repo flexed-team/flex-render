@@ -10,9 +10,23 @@ const TGAColor red   = TGAColor(255, 0,   0,   255);
 const TGAColor green = TGAColor(0,   255, 0,   255);
 
 Model *model = NULL;
-const int width  = 400;
-const int height = 400;
+const int width  = 1600;
+const int height = 1600;
 
+
+/*
+	This is an ordinary realization of Bresenham's line algorithm ( https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm )
+	However, as a last argument function takes reference to the vector of Vec2i variables to store all pixels' coordinates
+
+	@param v0 Vec2i variable which contains origin coordinates
+	@param v1 Vec2i variable which contains end coordinates
+	@param &image   refernce to the TGAImage
+	@param color    TGAColor variable which contains color of the line
+	@param points   reference to the vector of Vec2i variables
+
+	Note, the shape of line doesn't depend on origin and end coordinates arguments' position
+	=> line(v0,v1, ...) equals line(v1, v0, ...)
+*/
 void line(Vec2i v0, Vec2i v1, TGAImage &image, TGAColor color, std::vector<Vec2i>& points)
 {
 	bool steep = false;
@@ -62,8 +76,24 @@ void line(Vec2i v0, Vec2i v1, TGAImage &image, TGAColor color, std::vector<Vec2i
 	}
 }
 
+/*
+	This function rastezises a triangle with given vertexes and color
+
+	@param v0 Vec2i variable which contains 1st vertex coordinates
+	@param v1 Vec2i variable which contains 2nd vertex coordinates
+	@param v2 Vec2i variable which contains 3rd vertex coordinates
+	@param &image   refernce to the TGAImage
+	@param color    TGAColor variable which contains color of the triangle
+
+	Note, the shape of triangle doesn't depend on vertexes coordinates arguments' position
+	=> triangle(v0,v1,v3 ...) equals triangle(v3,v0,v1 ...) etc..
+*/
 void triangle(Vec2i v0, Vec2i v1, Vec2i v2, TGAImage &image, TGAColor color)
 {
+	/*
+		First of all, one should know that we draw our triangle by its halfs, so to detrmine which half will be rasterized first
+		we should sort our vertexes by their y-coordinates(in ascending order)
+	*/
 	if (v0.y > v1.y) std::swap(v0, v1);
   if (v0.y > v2.y) std::swap(v0, v2);
   if (v1.y > v2.y) std::swap(v1, v2);
@@ -82,7 +112,7 @@ void triangle(Vec2i v0, Vec2i v1, Vec2i v2, TGAImage &image, TGAColor color)
 	std::vector<Vec2i> pointsA;
 	std::vector<Vec2i> pointsB;
 
-	//line(v1, v2, image, color);
+	//Draw triangle's firs half, at the time save all points of lines in pointsA and pointsB vectors
 	line(v0, v1, image, color, pointsA);
 	line(v0, v2, image, color, pointsB);
 
@@ -98,15 +128,18 @@ void triangle(Vec2i v0, Vec2i v1, Vec2i v2, TGAImage &image, TGAColor color)
 	std::cout << pointsA.size() << " " << pointsB.size() << '\n';
 	*/
 
-
+	//Here we start to draw our first half
 	for(const auto& betaVec: pointsB)
 	{
 		for(const auto& alphaVec: pointsA)
 		{
+			//If our y-coordinates of both vectors equal it means we are on the proper height to start drawing
 			if (betaVec.y == alphaVec.y)
 			{
+				//We detrmines which way to draw(left or right)
 				if(alphaVec.x < betaVec.x)
 				{
+					//Draw a line between two x-coordinates
 					for (int x = alphaVec.x; x <= betaVec.x; x++)
 					{
 						image.set(x, alphaVec.y, color);
@@ -114,6 +147,7 @@ void triangle(Vec2i v0, Vec2i v1, Vec2i v2, TGAImage &image, TGAColor color)
 				}
 				else
 				{
+					//Draw a line between two x-coordinates
 					for (int x = betaVec.x; x <= alphaVec.x; x++)
 					{
 						image.set(x, alphaVec.y, color);
@@ -127,6 +161,7 @@ void triangle(Vec2i v0, Vec2i v1, Vec2i v2, TGAImage &image, TGAColor color)
 	pointsA.clear();
 	pointsB.clear();
 
+	//Draw triangle's second half, at the time same save all points of lines in pointsA and pointsB vectors
 	line(v2, v1, image, color, pointsA);
 	line(v2, v0, image, color, pointsB);
 
@@ -140,6 +175,7 @@ void triangle(Vec2i v0, Vec2i v1, Vec2i v2, TGAImage &image, TGAColor color)
 		std::cout << "x:" << a.x << " y:" << a.y << '\n';
 	*/
 
+	//This drawing loop is actually the same as the first one
 	for(const auto& betaVec: pointsB)
 	{
 		for(const auto& alphaVec: pointsA)
@@ -170,38 +206,38 @@ void triangle(Vec2i v0, Vec2i v1, Vec2i v2, TGAImage &image, TGAColor color)
 
 int main(int argc, char** argv)
 {
-		// if(argc == 2)
-		// 	model = new Model(argv[1]);
-		// else
-		// 	model = new Model("obj/default.obj");
+		//Load our model
+		if(argc == 2)
+			model = new Model(argv[1]);
+		else
+			model = new Model("obj\\default.obj");
 
     TGAImage image(width, height, TGAImage::RGB);
 
-		/*for (int i = 0; i < model->nfaces(); i++)
+		//Here we parse through our model
+		//At first we loop through all faces in our model
+		for (int i=0; i<model->nfaces(); i++)
 		{
-			std::vector<int> face = model->face(i);
-
-			for (int j = 0; j < 3; j++)
+    	std::vector<int> face = model->face(i);
+      Vec2i screen_coords[3];
+			//At second we loop through all vertexes of the face, translating them into screen coordinares
+			//according to the TGA configurations ( https://drive.google.com/open?id=1041061LS3waENZWf3ROwKcLRfEUypOc4 )
+      for (int j=0; j<3; j++)
 			{
-				Vec3f v0 = model->vert( face[j] );
-				Vec3f v1 = model->vert( face[ (j+1) % 3] );
+        Vec3f world_coords = model->vert(face[j]);
+        screen_coords[j] = Vec2i((world_coords.x+1.)*width/2., (world_coords.y+1.)*height/2.);
+      }
+			//Draw triangle with random color
+      triangle(screen_coords[0], screen_coords[1], screen_coords[2], image, TGAColor(rand()%255, rand()%255, rand()%255, 255));
+    }
 
-				int x0 = (v0.x + 1.) * width / 2.;
-				int y0 = (v0.y + 1.) * height / 2.;
-				int x1 = (v1.x + 1.) * width / 2.;
-				int y1 = (v1.y + 1.) * height / 2.;
-
-				line(x0, y0, x1, y1, image, white);
-			}
-		}*/
-
-		Vec2i t0[3] = {Vec2i(10, 70),   Vec2i(50, 160),  Vec2i(70, 80)};
-	 	Vec2i t1[3] = {Vec2i(180, 50),  Vec2i(150, 1),   Vec2i(70, 180)};
-	 	Vec2i t2[3] = {Vec2i(180, 150), Vec2i(120, 160), Vec2i(130, 180)};
-
-		triangle(t0[0], t0[1] ,t0[2], image, red);
-		triangle(t1[0], t1[1] ,t1[2], image, white);
-		triangle(t2[0], t2[1] ,t2[2], image, green);
+		// Vec2i t0[3] = {Vec2i(10, 70),   Vec2i(50, 160),  Vec2i(70, 80)};
+	 	// Vec2i t1[3] = {Vec2i(180, 50),  Vec2i(150, 1),   Vec2i(70, 180)};
+	 	// Vec2i t2[3] = {Vec2i(180, 150), Vec2i(120, 160), Vec2i(130, 180)};
+		//
+		// triangle(t0[0], t0[1] ,t0[2], image, red);
+		// triangle(t1[0], t1[1] ,t1[2], image, white);
+		// triangle(t2[0], t2[1] ,t2[2], image, green);
 
 		image.flip_vertically();
 		image.write_tga_file("output.tga");
