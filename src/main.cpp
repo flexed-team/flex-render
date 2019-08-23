@@ -213,6 +213,7 @@ int main(int argc, char** argv)
 			model = new Model("obj\\default.obj");
 
     TGAImage image(width, height, TGAImage::RGB);
+		Vec3f light_dir(0,0,-1);
 
 		//Here we parse through our model
 		//At first we loop through all faces in our model
@@ -220,15 +221,20 @@ int main(int argc, char** argv)
 		{
     	std::vector<int> face = model->face(i);
       Vec2i screen_coords[3];
+			Vec3f world_coords[3];
 			//At second we loop through all vertexes of the face, translating them into screen coordinares
 			//according to the TGA configurations ( https://drive.google.com/open?id=1041061LS3waENZWf3ROwKcLRfEUypOc4 )
       for (int j=0; j<3; j++)
 			{
-        Vec3f world_coords = model->vert(face[j]);
-        screen_coords[j] = Vec2i((world_coords.x+1.)*width/2., (world_coords.y+1.)*height/2.);
+        Vec3f v = model->vert(face[j]);
+        screen_coords[j] = Vec2i((v.x+1.)*width/2., (v.y+1.)*height/2.);
+				world_coords[j] = v;
       }
+			Vec3f n = (world_coords[2]-world_coords[0])^(world_coords[1]-world_coords[0]);
+      n.normalize();
+      float intensity = n*light_dir;
 			//Draw triangle with random color
-      triangle(screen_coords[0], screen_coords[1], screen_coords[2], image, TGAColor(rand()%255, rand()%255, rand()%255, 255));
+      if (intensity>0) triangle(screen_coords[0], screen_coords[1], screen_coords[2], image, TGAColor(intensity*255, intensity*255, intensity*255, 255));
     }
 
 		// Vec2i t0[3] = {Vec2i(10, 70),   Vec2i(50, 160),  Vec2i(70, 80)};
