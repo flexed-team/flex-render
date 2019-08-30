@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <cmath>
+#include <limits>
 #include "tgaimage.h"
 #include "model.h"
 #include "geometry.h"
@@ -10,8 +11,11 @@ const TGAColor red   = TGAColor(255, 0,   0,   255);
 const TGAColor green = TGAColor(0,   255, 0,   255);
 
 Model *model = NULL;
-const int width  = 1600;
-const int height = 1600;
+int *zbuffer = NULL;
+
+const int width  = 800;
+const int height = 800;
+const int depth  = 255;
 
 
 /*
@@ -27,7 +31,7 @@ const int height = 1600;
 	Note, the shape of line doesn't depend on origin and end coordinates arguments' position
 	=> line(v0,v1, ...) equals line(v1, v0, ...)
 */
-void line(Vec2i v0, Vec2i v1, TGAImage &image, TGAColor color, std::vector<Vec2i>& points)
+void line(Vec3i v0, Vec3i v1, TGAImage &image, TGAColor color, std::vector<Vec3i>& points, int *zbuffer)
 {
 	bool steep = false;
 	if ( std::abs(v0.x - v1.x) < std::abs(v0.y - v1.y) )
@@ -55,17 +59,41 @@ void line(Vec2i v0, Vec2i v1, TGAImage &image, TGAColor color, std::vector<Vec2i
 	{
 		if (!steep)
 		{
-			image.set(x,y,color);
+			int idx = x + y*width;
 
-			Vec2i t(x,y);
-			points.push_back(t);
+			float t = (x - v0.x)/(float)(v0.x-v1.x);
+			int z = v0.z*(1.-t) + v1.z*t;
+
+			if(zbuffer[idx]<z)
+			{
+				zbuffer[idx] = z;
+				image.set(x,y,color);
+			}
+
+
+			Vec3i _t(x,y,z);
+			points.push_back(_t);
 		}
 		else
 		{
-			image.set(y,x,color);
+			int idx = x + y*width;
 
-			Vec2i t(y,x);
-			points.push_back(t);
+			float t = (x - v0.x)/(float)(v0.x-v1.x);
+			int z = v0.z*(1.-t) + v1.z*t;
+
+			if(zbuffer[idx]<z)
+			{
+				/* You may use these here:
+				 * image.set(x,y,color);
+				 * to see that zbuffer actually works
+				*/
+				zbuffer[idx] = z;
+				image.set(y,x,color);
+			}
+
+
+			Vec3i _t(y,x,z);
+			points.push_back(_t);
 		}
 		error += deltaerr;
 		if(error >= deltax)
@@ -88,8 +116,11 @@ void line(Vec2i v0, Vec2i v1, TGAImage &image, TGAColor color, std::vector<Vec2i
 	Note, the shape of triangle doesn't depend on vertexes coordinates arguments' position
 	=> triangle(v0,v1,v3 ...) equals triangle(v3,v0,v1 ...) etc..
 */
-void triangle(Vec2i v0, Vec2i v1, Vec2i v2, TGAImage &image, TGAColor color)
+void triangle(Vec3i v0, Vec3i v1, Vec3i v2, TGAImage &image, TGAColor color, int *zbuffer)
 {
+	//Don't care about degenerate triangles
+	if (v0.y==v1.y && v0.y==v2.y) return;
+
 	/*
 		First of all, one should know that we draw our triangle by its halfs, so to detrmine which half will be rasterized first
 		we should sort our vertexes by their y-coordinates(in ascending order)
@@ -109,12 +140,12 @@ void triangle(Vec2i v0, Vec2i v1, Vec2i v2, TGAImage &image, TGAColor color)
 	std::cout << "x:" << v2.x << " y:" << v2.y << '\n';
 	*/
 
-	std::vector<Vec2i> pointsA;
-	std::vector<Vec2i> pointsB;
+	std::vector<Vec3i> pointsA;
+	std::vector<Vec3i> pointsB;
 
 	//Draw triangle's firs half, at the time save all points of lines in pointsA and pointsB vectors
-	line(v0, v1, image, color, pointsA);
-	line(v0, v2, image, color, pointsB);
+	line(v0, v1, image, color, pointsA, zbuffer);
+	line(v0, v2, image, color, pointsB, zbuffer);
 
 	/*
 	std::cout << "POINTS A VECTOR" << '\n';
@@ -142,7 +173,17 @@ void triangle(Vec2i v0, Vec2i v1, Vec2i v2, TGAImage &image, TGAColor color)
 					//Draw a line between two x-coordinates
 					for (int x = alphaVec.x; x <= betaVec.x; x++)
 					{
-						image.set(x, alphaVec.y, color);
+						float t = (x-alphaVec.x)/(float)(betaVec.x-alphaVec.x);
+						int z =  alphaVec.z*(1.-t) + betaVec.z*t;
+
+						int idx = x + alphaVec.y*width;
+
+						if(zbuffer[idx]<z)
+						{
+							zbuffer[idx] = z;
+							image.set(x, alphaVec.y, color);
+						}
+
 					}
 				}
 				else
@@ -150,7 +191,17 @@ void triangle(Vec2i v0, Vec2i v1, Vec2i v2, TGAImage &image, TGAColor color)
 					//Draw a line between two x-coordinates
 					for (int x = betaVec.x; x <= alphaVec.x; x++)
 					{
-						image.set(x, alphaVec.y, color);
+						float t = (x-betaVec.x)/(float)(alphaVec.x-betaVec.x);
+						int z =  betaVec.z*(1.-t) + alphaVec.z*t;
+
+						int idx = x + alphaVec.y*width;
+
+						if(zbuffer[idx]<z)
+						{
+							zbuffer[idx] = z;
+							image.set(x, alphaVec.y, color);
+						}
+
 					}
 				}
 			}
@@ -162,8 +213,8 @@ void triangle(Vec2i v0, Vec2i v1, Vec2i v2, TGAImage &image, TGAColor color)
 	pointsB.clear();
 
 	//Draw triangle's second half, at the time same save all points of lines in pointsA and pointsB vectors
-	line(v2, v1, image, color, pointsA);
-	line(v2, v0, image, color, pointsB);
+	line(v2, v1, image, color, pointsA, zbuffer);
+	line(v2, v0, image, color, pointsB, zbuffer);
 
 	/*
 	std::cout << "POINTS A VECTOR" << '\n';
@@ -186,14 +237,33 @@ void triangle(Vec2i v0, Vec2i v1, Vec2i v2, TGAImage &image, TGAColor color)
 				{
 					for (int x = alphaVec.x; x <= betaVec.x; x++)
 					{
-						image.set(x, alphaVec.y, color);
+						float t = (x-alphaVec.x)/(float)(betaVec.x-alphaVec.x);
+						int z =  alphaVec.z*(1.-t) + betaVec.z*t;
+
+						int idx = x + alphaVec.y*width;
+
+						if(zbuffer[idx]<z)
+						{
+							zbuffer[idx] = z;
+							image.set(x, alphaVec.y, color);
+						}
+
 					}
 				}
 				else
 				{
 					for (int x = betaVec.x; x <= alphaVec.x; x++)
 					{
-						image.set(x, alphaVec.y, color);
+						float t = (x-betaVec.x)/(float)(alphaVec.x-betaVec.x);
+						int z =  betaVec.z*(1.-t) + alphaVec.z*t;
+
+						int idx = x + alphaVec.y*width;
+
+						if(zbuffer[idx]<z)
+						{
+							zbuffer[idx] = z;
+							image.set(x, alphaVec.y, color);
+						}
 					}
 				}
 			}
@@ -212,6 +282,14 @@ int main(int argc, char** argv)
 		else
 			model = new Model("obj\\default.obj");
 
+		zbuffer = new int[width*height];
+		for (int i=0; i<width*height; i++)
+		{
+			zbuffer[i] = std::numeric_limits<int>::min();
+		}
+
+
+
     TGAImage image(width, height, TGAImage::RGB);
 		Vec3f light_dir(0,0,-1);
 
@@ -220,21 +298,21 @@ int main(int argc, char** argv)
 		for (int i=0; i<model->nfaces(); i++)
 		{
     	std::vector<int> face = model->face(i);
-      Vec2i screen_coords[3];
+      Vec3i screen_coords[3];
 			Vec3f world_coords[3];
 			//At second we loop through all vertexes of the face, translating them into screen coordinares
 			//according to the TGA configurations ( https://drive.google.com/open?id=1041061LS3waENZWf3ROwKcLRfEUypOc4 )
       for (int j=0; j<3; j++)
 			{
         Vec3f v = model->vert(face[j]);
-        screen_coords[j] = Vec2i((v.x+1.)*width/2., (v.y+1.)*height/2.);
+        screen_coords[j] = Vec3i((v.x+1.)*width/2., (v.y+1.)*height/2., (v.z+1.)*depth/2.);
 				world_coords[j] = v;
       }
 			Vec3f n = (world_coords[2]-world_coords[0])^(world_coords[1]-world_coords[0]);
       n.normalize();
       float intensity = n*light_dir;
 			//Draw triangle with random color
-      if (intensity>0) triangle(screen_coords[0], screen_coords[1], screen_coords[2], image, TGAColor(intensity*255, intensity*255, intensity*255, 255));
+      if (intensity>0) triangle(screen_coords[0], screen_coords[1], screen_coords[2], image, TGAColor(intensity*255, intensity*255, intensity*255, 255), zbuffer);
     }
 
 		// Vec2i t0[3] = {Vec2i(10, 70),   Vec2i(50, 160),  Vec2i(70, 80)};
