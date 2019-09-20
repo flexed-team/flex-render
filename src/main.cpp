@@ -22,6 +22,7 @@ const int depth  = 255;
 	This is an ordinary realization of Bresenham's line algorithm ( https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm )
 	However, as a last argument function takes reference to the vector of Vec2i variables to store all pixels' coordinates
 
+
 	@param v0 Vec3i variable which contains origin coordinates
 	@param v1 Vec3i variable which contains end coordinates
 	@param &image   refernce to the TGAImage
@@ -127,6 +128,7 @@ void triangle(Vec3i v0, Vec3i v1, Vec3i v2, TGAImage &image, TGAColor color, int
 	if (v0.y > v1.y) std::swap(v0, v1);
   	if (v0.y > v2.y) std::swap(v0, v2);
   	if (v1.y > v2.y) std::swap(v1, v2);
+
 
 	/*
 	std::cout << "v0" << '\n';
@@ -313,6 +315,7 @@ int main(int argc, char** argv)
 			//Draw triangle
       			if (intensity>0) triangle(screen_coords[0], screen_coords[1], screen_coords[2], image, TGAColor(intensity*255, intensity*255, intensity*255, 255), zbuffer);
     		}
+
 
 		// Vec2i t0[3] = {Vec2i(10, 70),   Vec2i(50, 160),  Vec2i(70, 80)};
 	 	// Vec2i t1[3] = {Vec2i(180, 50),  Vec2i(150, 1),   Vec2i(70, 180)};

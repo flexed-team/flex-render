@@ -5,7 +5,6 @@ LIBS         = -lm
 
 DESTDIR = ./
 TARGET  = main
-
 OBJECTS := $(patsubst %.cpp,%.o,$(wildcard *.cpp))
 
 all: $(DESTDIR)$(TARGET)
