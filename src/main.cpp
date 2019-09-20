@@ -62,8 +62,7 @@ void line(Vec3i v0, Vec3i v1, TGAImage &image, TGAColor color, std::vector<Vec3i
 		if (!steep)
 		{
 			int idx = x + y*width;
-
-			int z = v0.z + (v1.z - v0.z) * ((y - v0.y) / (float)(v1.y - v0.y));
+			int z = v0.z + (v1.z - v0.z) * (y - v0.y)/(float)(v1.y - v0.y);
 
 			if(zbuffer[idx]<z)
 			{
@@ -78,7 +77,7 @@ void line(Vec3i v0, Vec3i v1, TGAImage &image, TGAColor color, std::vector<Vec3i
 		else
 		{
 			int idx = x + y*width;
-			int z = v0.z + (v1.z - v0.z) * ((y - v0.y) / (float)(v1.y - v0.y));
+			int z = v0.z + (v1.z - v0.z) * (x - v0.x)/(float)(v1.x - v0.x);
 
 			if(zbuffer[idx]<z)
 			{
@@ -174,10 +173,8 @@ void triangle(Vec3i v0, Vec3i v1, Vec3i v2, TGAImage &image, TGAColor color, int
 					//Draw a line between two x-coordinates
 					for (int x = alphaVec.x; x <= betaVec.x; x++)
 					{
-						float t = (x-alphaVec.x)/(float)(betaVec.x-alphaVec.x);
-						int z =  alphaVec.z*(1.-t) + betaVec.z*t;
-
 						int idx = x + alphaVec.y*width;
+						int z = alphaVec.z + (betaVec.z - alphaVec.z) * (x - alphaVec.x)/(float)(betaVec.x - alphaVec.x);
 
 						if(zbuffer[idx]<z)
 						{
@@ -192,10 +189,8 @@ void triangle(Vec3i v0, Vec3i v1, Vec3i v2, TGAImage &image, TGAColor color, int
 					//Draw a line between two x-coordinates
 					for (int x = betaVec.x; x <= alphaVec.x; x++)
 					{
-						float t = (x-betaVec.x)/(float)(alphaVec.x-betaVec.x);
-						int z =  betaVec.z*(1.-t) + alphaVec.z*t;
-
 						int idx = x + alphaVec.y*width;
+						int z = betaVec.z + (alphaVec.z - betaVec.z) * (x - betaVec.x)/(float)(alphaVec.x - betaVec.x);
 
 						if(zbuffer[idx]<z)
 						{
@@ -238,9 +233,8 @@ void triangle(Vec3i v0, Vec3i v1, Vec3i v2, TGAImage &image, TGAColor color, int
 				{
 					for (int x = alphaVec.x; x <= betaVec.x; x++)
 					{
-						float t = (x-alphaVec.x)/(float)(betaVec.x-alphaVec.x);
-						int z =  alphaVec.z*(1.-t) + betaVec.z*t;
-
+						
+						int z = alphaVec.z + (betaVec.z - alphaVec.z) * (x - alphaVec.x)/(float)(betaVec.x - alphaVec.x); 
 						int idx = x + alphaVec.y*width;
 
 						if(zbuffer[idx]<z)
@@ -255,9 +249,8 @@ void triangle(Vec3i v0, Vec3i v1, Vec3i v2, TGAImage &image, TGAColor color, int
 				{
 					for (int x = betaVec.x; x <= alphaVec.x; x++)
 					{
-						float t = (x-betaVec.x)/(float)(alphaVec.x-betaVec.x);
-						int z =  betaVec.z*(1.-t) + alphaVec.z*t;
-
+						
+						int z = betaVec.z + (alphaVec.z - betaVec.z) * (x - betaVec.x)/(float)(alphaVec.x - betaVec.x);
 						int idx = x + alphaVec.y*width;
 
 						if(zbuffer[idx]<z)
