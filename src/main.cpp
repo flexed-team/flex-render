@@ -22,11 +22,12 @@ const int depth  = 255;
 	This is an ordinary realization of Bresenham's line algorithm ( https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm )
 	However, as a last argument function takes reference to the vector of Vec2i variables to store all pixels' coordinates
 
-	@param v0 Vec2i variable which contains origin coordinates
-	@param v1 Vec2i variable which contains end coordinates
+	@param v0 Vec3i variable which contains origin coordinates
+	@param v1 Vec3i variable which contains end coordinates
 	@param &image   refernce to the TGAImage
 	@param color    TGAColor variable which contains color of the line
 	@param points   reference to the vector of Vec2i variables
+	@param zbuffer  reference to zbuffer
 
 	Note, the shape of line doesn't depend on origin and end coordinates arguments' position
 	=> line(v0,v1, ...) equals line(v1, v0, ...)
@@ -104,11 +105,12 @@ void line(Vec3i v0, Vec3i v1, TGAImage &image, TGAColor color, std::vector<Vec3i
 /*
 	This function rastezises a triangle with given vertexes and color
 
-	@param v0 Vec2i variable which contains 1st vertex coordinates
-	@param v1 Vec2i variable which contains 2nd vertex coordinates
-	@param v2 Vec2i variable which contains 3rd vertex coordinates
+	@param v0 Vec3i variable which contains 1st vertex coordinates
+	@param v1 Vec3i variable which contains 2nd vertex coordinates
+	@param v2 Vec3i variable which contains 3rd vertex coordinates
 	@param &image   refernce to the TGAImage
 	@param color    TGAColor variable which contains color of the triangle
+	@param zbuffer  reference to zbuffer
 
 	Note, the shape of triangle doesn't depend on vertexes coordinates arguments' position
 	=> triangle(v0,v1,v3 ...) equals triangle(v3,v0,v1 ...) etc..
@@ -123,8 +125,8 @@ void triangle(Vec3i v0, Vec3i v1, Vec3i v2, TGAImage &image, TGAColor color, int
 		we should sort our vertexes by their y-coordinates(in ascending order)
 	*/
 	if (v0.y > v1.y) std::swap(v0, v1);
-  if (v0.y > v2.y) std::swap(v0, v2);
-  if (v1.y > v2.y) std::swap(v1, v2);
+  	if (v0.y > v2.y) std::swap(v0, v2);
+  	if (v1.y > v2.y) std::swap(v1, v2);
 
 	/*
 	std::cout << "v0" << '\n';
@@ -294,23 +296,23 @@ int main(int argc, char** argv)
 		//At first we loop through all faces in our model
 		for (int i=0; i<model->nfaces(); i++)
 		{
-    	std::vector<int> face = model->face(i);
-      Vec3i screen_coords[3];
+    			std::vector<int> face = model->face(i);
+      			Vec3i screen_coords[3];
 			Vec3f world_coords[3];
 			//At second we loop through all vertexes of the face, translating them into screen coordinares
 			//according to the TGA configurations ( https://drive.google.com/open?id=1041061LS3waENZWf3ROwKcLRfEUypOc4 )
-      for (int j=0; j<3; j++)
+      			for (int j=0; j<3; j++)
 			{
-        Vec3f v = model->vert(face[j]);
-        screen_coords[j] = Vec3i((v.x+1.)*width/2., (v.y+1.)*height/2., (v.z+1.)*depth/2.);
+       	 			Vec3f v = model->vert(face[j]);
+        			screen_coords[j] = Vec3i((v.x+1.)*width/2., (v.y+1.)*height/2., (v.z+1.)*depth/2.);
 				world_coords[j] = v;
-      }
+      			}
 			Vec3f n = (world_coords[2]-world_coords[0])^(world_coords[1]-world_coords[0]);
-      n.normalize();
-      float intensity = n*light_dir;
-			//Draw triangle with random color
-      if (intensity>0) triangle(screen_coords[0], screen_coords[1], screen_coords[2], image, TGAColor(intensity*255, intensity*255, intensity*255, 255), zbuffer);
-    }
+      			n.normalize();
+      			float intensity = n*light_dir;
+			//Draw triangle
+      			if (intensity>0) triangle(screen_coords[0], screen_coords[1], screen_coords[2], image, TGAColor(intensity*255, intensity*255, intensity*255, 255), zbuffer);
+    		}
 
 		// Vec2i t0[3] = {Vec2i(10, 70),   Vec2i(50, 160),  Vec2i(70, 80)};
 	 	// Vec2i t1[3] = {Vec2i(180, 50),  Vec2i(150, 1),   Vec2i(70, 180)};
