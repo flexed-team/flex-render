@@ -13,14 +13,18 @@ const TGAColor green = TGAColor(0,   255, 0,   255);
 Model *model = NULL;
 int *zbuffer = NULL;
 
+Vec3f light_dir(0,0,-1);
+
 const int width  = 800;
 const int height = 800;
 const int depth  = 255;
 
+const char defaultOBJName[256] = "obj/default.obj";
+const char defaultTEXName[256] = "tex/default.tga";
 
 /*
 	This is an ordinary realization of Bresenham's line algorithm ( https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm )
-	However, as a last argument function takes reference to the vector of Vec2i variables to store all pixels' coordinates
+	However, as a last argument function takes reference to the vector of Vec3i variables to store all pixels' coordinates
 
 
 	@param v0 Vec3i variable which contains origin coordinates
@@ -35,70 +39,27 @@ const int depth  = 255;
 */
 void line(Vec3i v0, Vec3i v1, TGAImage &image, TGAColor color, std::vector<Vec3i>& points, int *zbuffer)
 {
-	bool steep = false;
-	if ( std::abs(v0.x - v1.x) < std::abs(v0.y - v1.y) )
+
+	if (v0.y > v1.y) std::swap(v0, v1);
+
+	int length = (v1.y - v0.y) == 0 ? 1 : v1.y - v0.y;
+	for(int y = v0.y; y <= v1.y; y++)
 	{
-        std::swap(v0.x, v0.y);
-        std::swap(v1.x, v1.y);
-        steep = true;
-    }
-
-	if (v0.x > v1.x)
-	{
-        std::swap(v0.x, v1.x);
-        std::swap(v0.y, v1.y);
-    }
-
-	int deltax = std::abs(v1.x - v0.x);
-	int deltay = std::abs(v1.y - v0.y);
-
-	int error = 0;
-	int deltaerr = deltay * 2;
-
-	int y = v0.y;
-
-	for(int x = v0.x; x <= v1.x; x++)
-	{
-		if (!steep)
-		{
-			int idx = x + y*width;
+			
 			int z = v0.z + (v1.z - v0.z) * (y - v0.y)/(float)(v1.y - v0.y);
 
-			if(zbuffer[idx]<z)
-			{
-				zbuffer[idx] = z;
-				image.set(x,y,color);
-			}
+			float k = (float)(y - v0.y)/length;
+//			std::cout	<<	k	<<	" and length: "	<<	length		<<	std::endl;
+//
+			Vec3i _x = v0 + (v1 - v0)*k;
 
+	//		int idx = _x.x + y*width;
+	//		zbuffer[idx] = z; 
+	//		image.set(_x.x,y,color);
 
-			Vec3i _t(x,y,z);
+			Vec3i _t(_x.x,y,z);
 			points.push_back(_t);
-		}
-		else
-		{
-			int idx = x + y*width;
-			int z = v0.z + (v1.z - v0.z) * (x - v0.x)/(float)(v1.x - v0.x);
 
-			if(zbuffer[idx]<z)
-			{
-				/* You may use these here:
-				 * image.set(x,y,color);
-				 * to see that zbuffer actually works
-				*/
-				zbuffer[idx] = z;
-				image.set(y,x,color);
-			}
-
-
-			Vec3i _t(y,x,z);
-			points.push_back(_t);
-		}
-		error += deltaerr;
-		if(error >= deltax)
-		{
-			y += (v1.y > v0.y ? 1 : -1);
-			error -= deltax * 2;
-		}
 	}
 }
 
@@ -173,8 +134,9 @@ void triangle(Vec3i v0, Vec3i v1, Vec3i v2, TGAImage &image, TGAColor color, int
 					//Draw a line between two x-coordinates
 					for (int x = alphaVec.x; x <= betaVec.x; x++)
 					{
+						int z = std::numeric_limits<int>::min();
 						int idx = x + alphaVec.y*width;
-						int z = alphaVec.z + (betaVec.z - alphaVec.z) * (x - alphaVec.x)/(float)(betaVec.x - alphaVec.x);
+						if ((float)(betaVec.x - alphaVec.x) != 0) z = alphaVec.z + (betaVec.z - alphaVec.z) * (x - alphaVec.x)/(float)(betaVec.x - alphaVec.x);
 
 						if(zbuffer[idx]<z)
 						{
@@ -189,8 +151,9 @@ void triangle(Vec3i v0, Vec3i v1, Vec3i v2, TGAImage &image, TGAColor color, int
 					//Draw a line between two x-coordinates
 					for (int x = betaVec.x; x <= alphaVec.x; x++)
 					{
+						int z = std::numeric_limits<int>::min();
 						int idx = x + alphaVec.y*width;
-						int z = betaVec.z + (alphaVec.z - betaVec.z) * (x - betaVec.x)/(float)(alphaVec.x - betaVec.x);
+						if ((float)(alphaVec.x - betaVec.x) != 0) z = betaVec.z + (alphaVec.z - betaVec.z) * (x - betaVec.x)/(float)(alphaVec.x - betaVec.x);
 
 						if(zbuffer[idx]<z)
 						{
@@ -233,8 +196,8 @@ void triangle(Vec3i v0, Vec3i v1, Vec3i v2, TGAImage &image, TGAColor color, int
 				{
 					for (int x = alphaVec.x; x <= betaVec.x; x++)
 					{
-						
-						int z = alphaVec.z + (betaVec.z - alphaVec.z) * (x - alphaVec.x)/(float)(betaVec.x - alphaVec.x); 
+						int z = std::numeric_limits<int>::min();
+						if ((float)(betaVec.x - alphaVec.x) != 0) z = alphaVec.z + (betaVec.z - alphaVec.z) * (x - alphaVec.x)/(float)(betaVec.x - alphaVec.x); 
 						int idx = x + alphaVec.y*width;
 
 						if(zbuffer[idx]<z)
@@ -249,10 +212,11 @@ void triangle(Vec3i v0, Vec3i v1, Vec3i v2, TGAImage &image, TGAColor color, int
 				{
 					for (int x = betaVec.x; x <= alphaVec.x; x++)
 					{
-						
-						int z = betaVec.z + (alphaVec.z - betaVec.z) * (x - betaVec.x)/(float)(alphaVec.x - betaVec.x);
+						int z = std::numeric_limits<int>::min();
+						if ((float)(alphaVec.x - betaVec.x) != 0) z = betaVec.z + (alphaVec.z - betaVec.z) * (x - betaVec.x)/(float)(alphaVec.x - betaVec.x);
 						int idx = x + alphaVec.y*width;
 
+				
 						if(zbuffer[idx]<z)
 						{
 							zbuffer[idx] = z;
@@ -274,7 +238,7 @@ int main(int argc, char** argv)
 		if(argc == 2)
 			model = new Model(argv[1]);
 		else
-			model = new Model("obj/default.obj");
+			model = new Model(defaultOBJName);
 
 		zbuffer = new int[width*height];
 		for (int i=0; i<width*height; i++)
@@ -284,21 +248,23 @@ int main(int argc, char** argv)
 
 
 
-    TGAImage image(width, height, TGAImage::RGB);
-		Vec3f light_dir(0,0,-1);
+    		TGAImage image(width, height, TGAImage::RGB);
 
 		//Here we parse through our model
 		//At first we loop through all faces in our model
-		for (int i=0; i<model->nfaces(); i++)
+		for (int i=0; i < model->nvfaces(); i++)
 		{
-    			std::vector<int> face = model->face(i);
+    			std::vector<int> vface = model->vface(i);
+			std::vector<int> tface = model->tface(i);
       			Vec3i screen_coords[3];
 			Vec3f world_coords[3];
+			Vec3f tex_coords[3];
 			//At second we loop through all vertexes of the face, translating them into screen coordinares
 			//according to the TGA configurations ( https://drive.google.com/open?id=1041061LS3waENZWf3ROwKcLRfEUypOc4 )
       			for (int j=0; j<3; j++)
 			{
-       	 			Vec3f v = model->vert(face[j]);
+       	 			Vec3f v  = model->vert(vface[j]);
+				Vec3f vt = model->vtex(tface[j]) 
         			screen_coords[j] = Vec3i((v.x+1.)*width/2., (v.y+1.)*height/2., (v.z+1.)*depth/2.);
 				world_coords[j] = v;
       			}
@@ -310,13 +276,13 @@ int main(int argc, char** argv)
     		}
 
 
-		// Vec2i t0[3] = {Vec2i(10, 70),   Vec2i(50, 160),  Vec2i(70, 80)};
-	 	// Vec2i t1[3] = {Vec2i(180, 50),  Vec2i(150, 1),   Vec2i(70, 180)};
-	 	// Vec2i t2[3] = {Vec2i(180, 150), Vec2i(120, 160), Vec2i(130, 180)};
+//		Vec3i t0[3] = {Vec3i(10, 70,1),   Vec3i(50, 160,1),  Vec3i(70, 80,1)};
+//	 	Vec3i t1[3] = {Vec3i(180, 50,1),  Vec3i(150, 1,1),   Vec3i(70, 180,1)};
+//	 	Vec3i t2[3] = {Vec3i(180, 150,1), Vec3i(120, 160,1), Vec3i(130, 180,1)};
 		//
-		// triangle(t0[0], t0[1] ,t0[2], image, red);
-		// triangle(t1[0], t1[1] ,t1[2], image, white);
-		// triangle(t2[0], t2[1] ,t2[2], image, green);
+//		triangle(t0[0], t0[1] ,t0[2], image, red, zbuffer);
+//		triangle(t1[0], t1[1] ,t1[2], image, white, zbuffer);
+//		triangle(t2[0], t2[1] ,t2[2], image, green, zbuffer);
 
 		image.flip_vertically();
 		image.write_tga_file("output.tga");
