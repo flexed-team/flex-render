@@ -1,3 +1,3 @@
 # Flex Render
 
-If you use Linux, you should change `del` in Makefile to `rm`, so it works properly.
+If you use Windows' MinGW-make, you should change `rm` in Makefile to `del`, so it works properly.
