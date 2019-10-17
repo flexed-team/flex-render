@@ -14,7 +14,7 @@ const TGAColor green = TGAColor(0,   255, 0,   255);
 Model *model = NULL;
 int *zbuffer = NULL;
 
-Vec3f light_dir(0,0,-1);
+Vec3f light_dir(0,0,1);
 
 const int width  = 1080;
 const int height = 1080;
@@ -26,10 +26,14 @@ struct FaceData
 {
 	std::vector<int> vface;
 	std::vector<int> tface;
+	std::vector<int> nface;
 
 	Vec3i screen_coords[3];
 	Vec3f world_coords[3];
+
 	Vec2i tex_coords[3];
+
+	Vec3f normal_coords[3];
 };
 
 /*
@@ -65,10 +69,7 @@ void line(Vec3i v0, Vec3i v1, std::vector<Vec3i>& points, int *zbuffer)
 //			zbuffer[idx] = z; 
 //			image.set(_x.x,y,color);
 
-			Vec3i _t/*(_x.x, y ,z)*/;
-			_t.x = _x.x;
-			_t.y = y;
-			_t.z = z;
+			Vec3i _t(_x.x, y ,z);
 			points.push_back(_t);
 	}
 }
@@ -76,6 +77,7 @@ void line(Vec3i v0, Vec3i v1, std::vector<Vec3i>& points, int *zbuffer)
 /*
 	This function rastezises a triangle with given vertexes and color
 
+void triangle(FaceData data, TGAImage &image, int *zbuffer)
 	@param data     FaceData structure which contains face information 
 	@param &image   refernce to the TGAImage
 	@param color    TGAColor variable which contains color of the triangle
@@ -84,7 +86,7 @@ void line(Vec3i v0, Vec3i v1, std::vector<Vec3i>& points, int *zbuffer)
 	Note, the shape of triangle doesn't depend on vertexes coordinates arguments' position
 	=> triangle(v0,v1,v3 ...) equals triangle(v3,v0,v1 ...) etc..
 */
-void triangle(FaceData data, TGAImage &image, float intensity, int *zbuffer)
+void triangle(FaceData data, TGAImage &image, int *zbuffer)
 {	/* Vec3i v0, Vec3i v1, Vec3i v2 */
 	
 	Vec3i v0 = data.screen_coords[0];
@@ -95,6 +97,14 @@ void triangle(FaceData data, TGAImage &image, float intensity, int *zbuffer)
 	Vec2i uv1 = data.tex_coords[1];
 	Vec2i uv2 = data.tex_coords[2];
 
+	Vec3f vn0 = data.normal_coords[0];
+	Vec3f vn1 = data.normal_coords[1];
+	Vec3f vn2 = data.normal_coords[2];
+
+//	vn0.normalize();
+//	vn1.normalize();
+//	vn2.normalize();
+
 	//Don't care about degenerate triangles
 	if (v0.y==v1.y && v0.y==v2.y) return;
 
@@ -102,12 +112,11 @@ void triangle(FaceData data, TGAImage &image, float intensity, int *zbuffer)
 		First of all, one should know that we draw our triangle by its halfs, so to detrmine which half will be rasterized first
 		we should sort our vertexes by their y-coordinates(in ascending order)
 	*/
-	if (v0.y > v1.y) {std::swap(v0, v1); std::swap(uv0, uv1);}
-  	if (v0.y > v2.y) {std::swap(v0, v2); std::swap(uv0, uv2);}
-  	if (v1.y > v2.y) {std::swap(v1, v2); std::swap(uv1, uv2);}
+	if (v0.y > v1.y) {std::swap(v0, v1); std::swap(uv0, uv1); std::swap(vn0, vn1);}
+  	if (v0.y > v2.y) {std::swap(v0, v2); std::swap(uv0, uv2); std::swap(vn0, vn2);}
+  	if (v1.y > v2.y) {std::swap(v1, v2); std::swap(uv1, uv2); std::swap(vn1, vn2);}
 
 	int length = (v2.y == v0.y) ? 1 : v2.y - v0.y;
-
 
 	/*
 	std::cout << "v0" << '\n';
@@ -155,22 +164,30 @@ void triangle(FaceData data, TGAImage &image, float intensity, int *zbuffer)
 						
 				Vec2i alphaVecTex = uv0 + (uv2 - uv0) * alpha;
 				Vec2i betaVecTex  = uv0 + (uv1 - uv0) * beta;
+
+				Vec3f alphaNorm = vn0 + (vn2 - vn0) * alpha;
+				Vec3f betaNorm  = vn0 + (vn1 - vn0) * beta;
 			
 				//We detrmines which way to draw(left or right)
 				if(alphaVec.x < betaVec.x)
 				{	
 					std::swap(alphaVecTex, betaVecTex);
+					std::swap(alphaNorm, betaNorm);
 					//Draw a line between two x-coordinates
 					for (int x = alphaVec.x; x <= betaVec.x; x++)
 					{
 						float phi = (alphaVec.x == betaVec.x) ? 1.f : float(x - alphaVec.x) / float(betaVec.x - alphaVec.x);
-						Vec2i uvP = alphaVecTex + (betaVecTex - alphaVecTex) * phi;					
+						Vec2i uvP = alphaVecTex + (betaVecTex - alphaVecTex) * phi;	
+
+						Vec3f vnP = alphaNorm + (betaNorm - alphaNorm) * phi;
 
 						int z = std::numeric_limits<int>::min();
 						long long idx = x + alphaVec.y*width;
 						if ((float)(betaVec.x - alphaVec.x) != 0) z = alphaVec.z + (betaVec.z - alphaVec.z) * (x - alphaVec.x)/(float)(betaVec.x - alphaVec.x);
-											
-						
+						vnP.normalize();
+						//vnP = vnP * -1.0f;				
+						float intensity = std::max(0.0f, vnP*light_dir);
+
 						TGAColor color = model->getTex(uvP);
 						if(zbuffer[idx] < z)
 						{
@@ -187,10 +204,15 @@ void triangle(FaceData data, TGAImage &image, float intensity, int *zbuffer)
 						float phi = (alphaVec.x == betaVec.x) ? 1.f : float(x - betaVec.x) / float(alphaVec.x - betaVec.x);
 						Vec2i uvP = alphaVecTex + (betaVecTex - alphaVecTex) * phi;
 
+						Vec3f vnP = alphaNorm + (betaNorm - alphaNorm) * phi;
+
 						int z = std::numeric_limits<int>::min();
 						long long idx = x + alphaVec.y*width;
 						if ((float)(alphaVec.x - betaVec.x) != 0) z = betaVec.z + (alphaVec.z - betaVec.z) * (x - betaVec.x)/(float)(alphaVec.x - betaVec.x);
-						
+						vnP.normalize();
+						//vnP = vnP * -1.0f;								
+						float intensity = std::max(0.0f, vnP*light_dir);
+
 						TGAColor color = model->getTex(uvP);
 						if(zbuffer[idx]<z)
 						{
@@ -234,18 +256,27 @@ void triangle(FaceData data, TGAImage &image, float intensity, int *zbuffer)
 				Vec2i alphaVecTex = uv0 + (uv2 - uv0) * alpha;
 				Vec2i betaVecTex  = uv1 + (uv2 - uv1) * beta;
 
+				Vec3f alphaNorm = vn0 + (vn2 - vn0) * alpha;
+				Vec3f betaNorm  = vn1 + (vn2 - vn1) * beta;
+
 				if(alphaVec.x < betaVec.x)
 				{
 					std::swap(alphaVecTex, betaVecTex);
-
+					std::swap(alphaNorm, betaNorm);
 					for (int x = alphaVec.x; x <= betaVec.x; x++)
 					{							
 						float phi = (alphaVec.x == betaVec.x) ? 1.f : float(x - alphaVec.x) / float(betaVec.x - alphaVec.x);
-						Vec2i uvP = alphaVecTex + (betaVecTex - alphaVecTex) * phi;	
+						Vec2i uvP = alphaVecTex + (betaVecTex - alphaVecTex) * phi;
+
+						Vec3f vnP = alphaNorm + (betaNorm - alphaNorm) * phi;	
 
 						int z = std::numeric_limits<int>::min();
 						if ((float)(betaVec.x - alphaVec.x) != 0) z = alphaVec.z + (betaVec.z - alphaVec.z) * (x - alphaVec.x)/(float)(betaVec.x - alphaVec.x); 
 						long long idx = x + alphaVec.y*width;
+
+						vnP.normalize();
+						//vnP = vnP * -1.0f;								
+						float intensity = std::max(0.0f, vnP*light_dir);
 						
 						TGAColor color = model->getTex(uvP);
 						if(zbuffer[idx]<z)
@@ -264,9 +295,15 @@ void triangle(FaceData data, TGAImage &image, float intensity, int *zbuffer)
 						float phi = (alphaVec.x == betaVec.x) ? 1.f : float(x - betaVec.x) / float(alphaVec.x - betaVec.x);
 						Vec2i uvP = alphaVecTex + (betaVecTex - alphaVecTex) * phi;
 
+						Vec3f vnP = alphaNorm + (betaNorm - alphaNorm) * phi;	
+
 						int z = std::numeric_limits<int>::min();
 						if ((float)(alphaVec.x - betaVec.x) != 0) z = betaVec.z + (alphaVec.z - betaVec.z) * (x - betaVec.x)/(float)(alphaVec.x - betaVec.x);
 						long long idx = x + alphaVec.y*width;
+
+						vnP.normalize();
+						//vnP = vnP * -1.0f;								
+						float intensity = std::max(0.0f, vnP*light_dir);
 
 						TGAColor color = model->getTex(uvP);
 						if(zbuffer[idx]<z)
@@ -310,6 +347,7 @@ int main(int argc, char** argv)
 			FaceData data;
 			data.vface = model->vface(i);
 			data.tface = model->tface(i);
+			data.nface = model->nface(i);
 
     			//std::vector<int> vface = model->vface(i);
 			//std::vector<int> tface = model->tface(i);
@@ -323,18 +361,23 @@ int main(int argc, char** argv)
 			{
        	 			Vec3f v  = model->vert(data.vface[j]);
 				Vec2i vt = model->vtex(data.tface[j]);
+				Vec3f vn = model->norm(data.nface[j]);
+
         			data.screen_coords[j] = Vec3i((v.x+1.)*width/2., (v.y+1.)*height/2., (v.z+1.)*depth/2.);
 				data.world_coords[j] = v;
+
 				data.tex_coords[j] = vt;
+
+				data.normal_coords[j] = vn;
 				//std::cout<<"f "<<data.vface[j]<<"/"<<data.tface[j]<<std::endl;
 				//std::cout<<"vt "<<vt.x<<"/"<<vt.y<<std::endl<<std::endl;
       			}
 
-			Vec3f n = (data.world_coords[2]-data.world_coords[0])^(data.world_coords[1]-data.world_coords[0]);
-      			n.normalize();
-      			float intensity = n*light_dir; 
+			//Vec3f n = (data.world_coords[2]-data.world_coords[0])^(data.world_coords[1]-data.world_coords[0]);
+      			//n.normalize();
+      			//float intensity = n*light_dir; 
 			//Draw triangle
-      			if (intensity>0) triangle(data, image/*, TGAColor(intensity*255, intensity*255, intensity*255, 255)*/, intensity, zbuffer);
+      			triangle(data, image/*, TGAColor(intensity*255, intensity*255, intensity*255, 255)*/, zbuffer);
 			
     		}
 
