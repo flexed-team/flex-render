@@ -1,8 +1,7 @@
 SYSCONF_LINK = g++
 CPPFLAGS     = -g
 LDFLAGS      = 
-LIBS         = -lm
-
+LIBS         = -lm -lpthread -lX11 
 DESTDIR = ./
 TARGET  = main
 OBJECTS := $(patsubst %.cpp,%.o,$(wildcard *.cpp))

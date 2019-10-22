@@ -1,0 +1,74 @@
+int main(int argc, char** argv)
+{
+		
+		//Load our model
+		if(argc == 2)
+			model = new Model(argv[1]);
+		else
+			model = new Model(defaultOBJName);
+
+		zbuffer = new int[width*height];
+		for (int i=0; i<width*height; i++)
+		{
+			zbuffer[i] = std::numeric_limits<int>::min();
+		}
+
+
+
+    		TGAImage image(width, height, TGAImage::RGB);
+
+		//Here we parse through our model
+		//At first we loop through all faces in our model
+		for (int i=0; i < model->nvfaces(); i++)
+		{	
+			FaceData data;
+			data.vface = model->vface(i);
+			data.tface = model->tface(i);
+			data.nface = model->nface(i);
+
+    			//std::vector<int> vface = model->vface(i);
+			//std::vector<int> tface = model->tface(i);
+      			//Vec3i screen_coords[3];
+			//Vec3f world_coords[3];
+			//Vec3f tex_coords[3];
+
+			//At second we loop through all vertexes of the face, translating them into screen coordinares
+			//according to the TGA configurations ( https://drive.google.com/open?id=1041061LS3waENZWf3ROwKcLRfEUypOc4 )
+      			for (int j=0; j<3; j++)
+			{
+       	 			Vec3f v  = model->vert(data.vface[j]);
+				Vec2i vt = model->vtex(data.tface[j]);
+				Vec3f vn = model->norm(data.nface[j]);
+
+        			data.screen_coords[j] = Vec3i((v.x+1.)*width/2., (v.y+1.)*height/2., (v.z+1.)*depth/2.);
+				data.world_coords[j] = v;
+
+				data.tex_coords[j] = vt;
+
+				data.normal_coords[j] = vn;
+				//std::cout<<"f "<<data.vface[j]<<"/"<<data.tface[j]<<std::endl;
+				//std::cout<<"vt "<<vt.x<<"/"<<vt.y<<std::endl<<std::endl;
+      			}
+
+			//Vec3f n = (data.world_coords[2]-data.world_coords[0])^(data.world_coords[1]-data.world_coords[0]);
+      			//n.normalize();
+      			//float intensity = n*light_dir; 
+			//Draw triangle
+      			triangle(data, image/*, TGAColor(intensity*255, intensity*255, intensity*255, 255)*/, zbuffer);
+			
+    		}
+
+		/*
+		Vec3i t0[3] = {Vec3i(10, 70,1),   Vec3i(50, 160,1),  Vec3i(70, 80,1)};
+	 	Vec3i t1[3] = {Vec3i(180, 50,1),  Vec3i(150, 1,1),   Vec3i(70, 180,1)};
+	 	Vec3i t2[3] = {Vec3i(180, 150,1), Vec3i(120, 160,1), Vec3i(130, 180,1)};
+		
+		triangle(t0[0], t0[1] ,t0[2], image, red, zbuffer);
+		triangle(t1[0], t1[1] ,t1[2], image, white, zbuffer);
+		triangle(t2[0], t2[1] ,t2[2], image, green, zbuffer);
+		*/
+		image.flip_vertically();
+		image.write_tga_file("output.tga");
+
+  	return 0;
+}

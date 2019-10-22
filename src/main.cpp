@@ -3,9 +3,15 @@
 #include <array>
 #include <cmath>
 #include <limits>
+#include <unistd.h>
+#include <mutex>
+#include <thread>
 #include "tgaimage.h"
 #include "model.h"
 #include "geometry.h"
+#include "winlib.h"	
+
+std::mutex mtx;
 
 const TGAColor white = TGAColor(255, 255, 255, 255);
 const TGAColor red   = TGAColor(255, 0,   0,   255);
@@ -16,11 +22,18 @@ int *zbuffer = NULL;
 
 Vec3f light_dir(0,0,1);
 
-const int width  = 1080;
-const int height = 1080;
+const int screen_width  = 700;
+const int screen_height = 700;
+
+const int width  = 700;
+const int height = 700;
 const int depth  = 255;
 
+FlexWindow image(screen_width, screen_height, FlexWindow::RGB);
+
 const char defaultOBJName[256] = "obj/default.obj";
+
+std::vector<std::pair<Vec2i, FlexColor>> objMap;
 
 struct FaceData
 {
@@ -36,6 +49,17 @@ struct FaceData
 	Vec3f normal_coords[3];
 };
 
+void renderObj()
+{
+	//std::vector<std::thread> threads;
+	for(auto& face: objMap)
+	{
+		//std::cout<<"x: "<<face.first.x<<" y: "<<face.first.y<<" RGB: "<<face.second.c.red/256<<"/"<<face.second.c.green/256<<"/"<<face.second.c.blue/256<<std::endl;
+
+		image.set(face.first.x, face.first.y, face.second);
+	}		
+}
+
 /*
 	This is an ordinary realization of Bresenham's line algorithm ( https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm )
 	However, as a last argument function takes reference to the vector of Vec3i variables to store all pixels' coordinates
@@ -49,7 +73,7 @@ struct FaceData
 	Note, the shape of line doesn't depend on origin and end coordinates arguments' position
 	=> line(v0, v1, ...) equals line(v1, v0, ...)
 */
-void line(Vec3i v0, Vec3i v1, std::vector<Vec3i>& points, int *zbuffer)
+void line(Vec3i v0, Vec3i v1, std::vector<Vec3i>& points)
 {
 
 	if (v0.y > v1.y) {std::swap(v0, v1);}
@@ -86,8 +110,11 @@ void triangle(FaceData data, TGAImage &image, int *zbuffer)
 	Note, the shape of triangle doesn't depend on vertexes coordinates arguments' position
 	=> triangle(v0,v1,v3 ...) equals triangle(v3,v0,v1 ...) etc..
 */
-void triangle(FaceData data, TGAImage &image, int *zbuffer)
-{	/* Vec3i v0, Vec3i v1, Vec3i v2 */
+void triangle(FaceData data)
+{	
+	std::lock_guard<std::mutex> lock(mtx);	
+	
+	/* Vec3i v0, Vec3i v1, Vec3i v2 */
 	
 	Vec3i v0 = data.screen_coords[0];
 	Vec3i v1 = data.screen_coords[1];
@@ -133,8 +160,8 @@ void triangle(FaceData data, TGAImage &image, int *zbuffer)
 	std::vector<Vec3i> pointsB;
 
 	//Draw triangle's firs half, at the time save all points of lines in pointsA and pointsB vectors
-	line(v0, v1, pointsA, zbuffer);
-	line(v0, v2, pointsB, zbuffer);
+	line(v0, v1, pointsA);
+	line(v0, v2, pointsB);
 
 	/*
 	std::cout << "POINTS A VECTOR" << '\n';
@@ -192,7 +219,8 @@ void triangle(FaceData data, TGAImage &image, int *zbuffer)
 						if(zbuffer[idx] < z)
 						{
 							zbuffer[idx] = z;
-							image.set(x, alphaVec.y, TGAColor(color.r*intensity, color.g*intensity, color.b*intensity));
+							//image.set(x, alphaVec.y, FlexColor(color.r*intensity, color.g*intensity, color.b*intensity));
+							objMap.emplace_back(Vec2i(x, alphaVec.y), FlexColor(color.r*intensity, color.g*intensity, color.b*intensity));
 						}
 					}
 				}
@@ -217,7 +245,8 @@ void triangle(FaceData data, TGAImage &image, int *zbuffer)
 						if(zbuffer[idx]<z)
 						{
 							zbuffer[idx] = z;
-							image.set(x, alphaVec.y, TGAColor(color.r*intensity, color.g*intensity, color.b*intensity));
+							//image.set(x, alphaVec.y, FlexColor(color.r*intensity, color.g*intensity, color.b*intensity));
+							objMap.emplace_back(Vec2i(x, alphaVec.y), FlexColor(color.r*intensity, color.g*intensity, color.b*intensity));
 						}
 					}
 				}
@@ -229,8 +258,8 @@ void triangle(FaceData data, TGAImage &image, int *zbuffer)
 	pointsB.clear();
 
 	//Draw triangle's second half, at the time same save all points of lines in pointsA and pointsB vectors
-	line(v2, v1, pointsA, zbuffer);
-	line(v2, v0, pointsB, zbuffer);
+	line(v2, v1, pointsA);
+	line(v2, v0, pointsB);
 
 	/*
 	std::cout << "POINTS A VECTOR" << '\n';
@@ -282,7 +311,8 @@ void triangle(FaceData data, TGAImage &image, int *zbuffer)
 						if(zbuffer[idx]<z)
 						{
 							zbuffer[idx] = z;
-							image.set(x, alphaVec.y, TGAColor(color.r*intensity, color.g*intensity, color.b*intensity));
+							//image.set(x, alphaVec.y, FlexColor(color.r*intensity, color.g*intensity, color.b*intensity));
+							objMap.emplace_back(Vec2i(x, alphaVec.y), FlexColor(color.r*intensity, color.g*intensity, color.b*intensity));
 						}
 
 					}
@@ -309,7 +339,8 @@ void triangle(FaceData data, TGAImage &image, int *zbuffer)
 						if(zbuffer[idx]<z)
 						{
 							zbuffer[idx] = z;
-							image.set(x, alphaVec.y, TGAColor(color.r*intensity, color.g*intensity, color.b*intensity));
+							//image.set(x, alphaVec.y, FlexColor(color.r*intensity, color.g*intensity, color.b*intensity));
+							objMap.emplace_back(Vec2i(x, alphaVec.y), FlexColor(color.r*intensity, color.g*intensity, color.b*intensity));
 						}
 					}
 				}
@@ -322,7 +353,7 @@ void triangle(FaceData data, TGAImage &image, int *zbuffer)
 }
 
 int main(int argc, char** argv)
-{
+{		
 		
 		//Load our model
 		if(argc == 2)
@@ -336,9 +367,8 @@ int main(int argc, char** argv)
 			zbuffer[i] = std::numeric_limits<int>::min();
 		}
 
-
-
-    		TGAImage image(width, height, TGAImage::RGB);
+		image.init_model(width, height);
+		image.show_window();
 
 		//Here we parse through our model
 		//At first we loop through all faces in our model
@@ -377,10 +407,13 @@ int main(int argc, char** argv)
       			//n.normalize();
       			//float intensity = n*light_dir; 
 			//Draw triangle
-      			triangle(data, image/*, TGAColor(intensity*255, intensity*255, intensity*255, 255)*/, zbuffer);
+      			triangle(data);
+			//threads.emplace_back(std::move(thr));
 			
     		}
 
+		//for(auto& thr: threads) thr.join();
+		renderObj();
 		/*
 		Vec3i t0[3] = {Vec3i(10, 70,1),   Vec3i(50, 160,1),  Vec3i(70, 80,1)};
 	 	Vec3i t1[3] = {Vec3i(180, 50,1),  Vec3i(150, 1,1),   Vec3i(70, 180,1)};
@@ -390,8 +423,12 @@ int main(int argc, char** argv)
 		triangle(t1[0], t1[1] ,t1[2], image, white, zbuffer);
 		triangle(t2[0], t2[1] ,t2[2], image, green, zbuffer);
 		*/
-		image.flip_vertically();
-		image.write_tga_file("output.tga");
+		//image.flip_vertically();
+		//image.write_tga_file("output.tga");
+
+		image.update_window();
+		sleep(10);
+		image.close_window();
 
   	return 0;
 }
