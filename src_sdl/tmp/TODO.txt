@@ -1,0 +1,18 @@
+Render:
+ [~] Matrix class
+ [0] Matrix calculations
+     |
+     |- [0] Perspective/Viewport
+     |- [0] Camera
+ [0] New rasterization algorithm(bounding box)
+
+Winlib:
+ [X] Image rotating
+ [0] Multithreading
+     |
+     |- [0] Thread pool class
+     |- [0] Task class
+ [0] Inteface(UI)
+
+Misc:
+ [0] Code refactoring
