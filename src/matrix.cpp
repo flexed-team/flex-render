@@ -2,14 +2,14 @@
 
 // Zero constructors
 
-Mati::Matrix(unsigned int _w, unsigned int _h, bool _transpose) : w(_w), h(_h), v(_w* _h, 0), transpose(_transpose) {}
-Matf::Matrix(unsigned int _w, unsigned int _h, bool _transpose) : w(_w), h(_h), v(_w* _h, 0.0), transpose(_transpose) {}
+Matrix<int>::Matrix(unsigned int _w, unsigned int _h, bool _transpose) : w(_w), h(_h), v(_w* _h, 0), transpose(_transpose) {}
+Matrix<float>::Matrix(unsigned int _w, unsigned int _h, bool _transpose) : w(_w), h(_h), v(_w* _h, 0.f), transpose(_transpose) {}
 
-Matv2i::Matrix(unsigned int _w, unsigned int _h, bool _transpose) : w(_w), h(_h), v(_w* _h, Vec2i(0, 0)), transpose(_transpose) {}
-Matv2f::Matrix(unsigned int _w, unsigned int _h, bool _transpose) : w(_w), h(_h), v(_w* _h, Vec2f(0, 0)), transpose(_transpose) {}
+Matrix<Vec2i>::Matrix(unsigned int _w, unsigned int _h, bool _transpose) : w(_w), h(_h), v(_w* _h, Vec2i(0, 0)), transpose(_transpose) {}
+Matrix<Vec2f>::Matrix(unsigned int _w, unsigned int _h, bool _transpose) : w(_w), h(_h), v(_w* _h, Vec2f(0, 0)), transpose(_transpose) {}
 
-Matv3i::Matrix(unsigned int _w, unsigned int _h, bool _transpose) : w(_w), h(_h), v(_w* _h, Vec3i(0.f, 0.f, 0.f)), transpose(_transpose) {}
-Matv3f::Matrix(unsigned int _w, unsigned int _h, bool _transpose) : w(_w), h(_h), v(_w* _h, Vec3f(0.f, 0.f, 0.f)), transpose(_transpose) {}
+Matrix<Vec3i>::Matrix(unsigned int _w, unsigned int _h, bool _transpose) : w(_w), h(_h), v(_w* _h, Vec3i(0.f, 0.f, 0.f)), transpose(_transpose) {}
+Matrix<Vec3f>::Matrix(unsigned int _w, unsigned int _h, bool _transpose) : w(_w), h(_h), v(_w* _h, Vec3f(0.f, 0.f, 0.f)), transpose(_transpose) {}
 
 /// Other are cosntructors
 
@@ -82,10 +82,10 @@ template<class t> Matrix<t> Matrix<t>::operator +(float o) {
 	return Matrix<t>(w, h, _v);
 }
 template<class t> Matrix<t> Matrix<t>::operator +(Matrix<t>& o) {
-	check_sizes(other);
+	check_sizes(o);
 	t* _v = v.data();
 	for (int i = 0; i < w * h; i++)
-		_v[i] += other.v[i];
+		_v[i] += o.v[i];
 	return Matrix<t>(w, h, _v);
 }
 
@@ -110,108 +110,108 @@ template<class t> Matrix<t> Matrix<t>::operator -(int o) {
 	return Matrix<t>(w, h, _v);
 }
 template<class t> Matrix<t> Matrix<t>::operator -(Matrix<t>& o) {
-	check_sizes(other);
+	check_sizes(o);
 	t* _v = v.data();
 	for (int i = 0; i < w * h; i++)
-		_v[i] -= other.v[i];
+		_v[i] -= o.v[i];
 	return Matrix<t>(w, h, _v);
 }
 
 // * * * * * * * * * * * * * * * * * 
-template<class t> Matrix<t> Matrix<t>::operator *(int other)
+template<class t> Matrix<t> Matrix<t>::operator *(int o)
 {
 	t* _v = v.data();
 	for (int i = 0; i < w * h; i++)
-		_v[i] *= other;
+		_v[i] *= o;
 	return Matrix<t>(w, h, _v);
 }
-template<class t>  Matrix<t> Matrix<t>::operator *(float other)
+template<class t>  Matrix<t> Matrix<t>::operator *(float o)
 {
 	t* _v = v.data();
 	for (int i = 0; i < w * h; i++)
-		_v[i] *= other;
+		_v[i] *= o;
 	return Matrix<t>(w, h, _v);
 }
-template<class t> Matrix<t> Matrix<t>::operator *(Matrix<t>& other)
+template<class t> Matrix<t> Matrix<t>::operator *(Matrix<t>& o)
 {
-	assert(w == other.h && "Multiply is impossible - origin matrix width is not equal other height");
-	std::vector<t> _v = std::vector<t>(h * other.w);
+	assert(w == o.h && "Multiply is impossible - origin matrix width is not equal other height");
+	std::vector<t> _v = std::vector<t>(h * o.w);
 	for (unsigned int i = 0; i < h; i++)
-		for (unsigned int j = 0; j < other.w; j++)
+		for (unsigned int j = 0; j < o.w; j++)
 			for (unsigned int k = 0; k < w; k++) {
-				_v[j + i * other.w] += v[i * w + k] * other.v[k * other.w + j];
+				_v[j + i * o.w] += v[i * w + k] * o.v[k * o.w + j];
 			}
 
-	return Matrix<t>(other.w, h, &_v);
+	return Matrix<t>(o.w, h, &_v);
 }
 
 
 // / / / / / / / / / / / / / / / / / / / / / / / / 
 
-template<class t> Matrix<t> Matrix<t>::operator /(int other)
+template<class t> Matrix<t> Matrix<t>::operator /(int o)
 {
 	t* _v = v.data();
 	for (int i = 0; i < w * h; i++)
-		_v[i] /= other;
+		_v[i] /= o;
 	return Matrix<t>(w, h, _v);
 }
-template<class t> Matrix<t>& Matrix<t>::operator /(float other)
+template<class t> Matrix<t>& Matrix<t>::operator /(float o)
 {
 	t* _v = v.data();
 	for (int i = 0; i < w * h; i++)
-		_v[i] /= other;
+		_v[i] /= o;
 	return Matrix<t>(w, h, _v);
 }
 
 
 // = = = = = = = = = = = = = = = = = = = = = 
 
-template<class t> bool Matrix<t>::operator ==(int other)
+template<class t> bool Matrix<t>::operator ==(int o)
 {
 	t* _v = v.data();
 	for (int i = 0; i < w * h; i++)
-		if (_v[i] != other) return false;
+		if (_v[i] != o) return false;
 	return true;
 }
-template<class t> bool Matrix<t>::operator ==(float other)
+template<class t> bool Matrix<t>::operator ==(float o)
 {
 	t* _v = v.data();
 	for (int i = 0; i < w * h; i++)
-		if (_v[i] != other) return false;
+		if (_v[i] != o) return false;
 	return true;
 }
-template<class t> bool Matrix<t>::operator ==(Matrix<t>& other)
+template<class t> bool Matrix<t>::operator ==(Matrix<t>& o)
 {
-	check_sizes(other);
+	check_sizes(o);
 	t* _v = v.data();
 	for (int i = 0; i < w * h; i++)
-		if (_v[i] != other.v[i]) return false;
+		if (_v[i] != o.v[i]) return false;
 	return true;
 }
 
 
 // != != != != != != != != != != != != != 
 
-template<class t> bool Matrix<t>::operator !=(int other)
+template<class t> bool Matrix<t>::operator !=(int o)
 {
 	t* _v = v.data();
 	for (int i = 0; i < w * h; i++)
-		if (_v[i] == other) return false;
+		if (_v[i] == o) return false;
 	return true;
 }
-template<class t> bool Matrix<t> ::operator !=(float other)
+template<class t> bool Matrix<t> ::operator !=(float o)
 {
 	t* _v = v.data();
 	for (int i = 0; i < w * h; i++)
-		if (_v[i] == other) return false;
+		if (_v[i] == o) return false;
 	return true;
 }
-template<class t> bool Matrix<t> ::operator !=(Matrix<t>& other)
+template<class t> bool Matrix<t> ::operator !=(Matrix<t>& o)
 {
-	check_sizes(other);
+	check_sizes(o);
 	t* _v = v.data();
 	for (int i = 0; i < w * h; i++)
-		if (_v[i] == other.v[i]) return false;
+		if (_v[i] == o.v[i]) return false;
 	return true;
 }
 

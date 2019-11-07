@@ -37,11 +37,11 @@ public:
 	/** Zero constructor */
 	Matrix(unsigned int _w, unsigned int _h, bool _transpose = false);
 	/** From array pointer */
-	Matrix(unsigned int _w, unsigned int _h, t* _v, bool _transpose = false) : w(_w), h(_h), v(_v, _v + _w * _h), transpose(_transpose) {};
+	Matrix(unsigned int _w, unsigned int _h, t* _v, bool _transpose = false);
 	/** From vector */
-	Matrix(unsigned int _w, unsigned  int _h, std::vector<t> _v, bool _transpose = false) : w(_w), h(_h), v(_v.begin(), _v.end()), transpose(_transpose) {}
+	Matrix(unsigned int _w, unsigned  int _h, std::vector<t> _v, bool _transpose = false);
 	/** From vector pointer */
-	Matrix(unsigned int _w, unsigned  int _h, std::vector<t>* _v, bool _transpose = false) : w(_w), h(_h), v(_v->begin(), _v->end()), transpose(_transpose) {}
+	Matrix(unsigned int _w, unsigned  int _h, std::vector<t>* _v, bool _transpose = false);
 
 
 	/** Gets matrix values array size */
@@ -53,7 +53,7 @@ public:
 	/** Inserts col to matrix */
 	void insert_col(t* colv, int colh);
 
-	/** 
+	/**
 	* Outputs matrix
 	* Respects `transpose`
 	*/
@@ -68,37 +68,44 @@ public:
 
 	/** Unary minus */
 	Matrix<t> operator -();
-	Matrix<t> operator -(int other);
-	Matrix<t> operator -(float other);
-	Matrix<t> operator -(Matrix<t>& other);
+	Matrix<t> operator -(int o);
+	Matrix<t> operator -(float o);
+	Matrix<t> operator -(Matrix<t>& o);
 
 	// * * * * * * * * * * * * * * * * * 
-	Matrix<t> operator *(int other);
-	Matrix<t> operator *(float other);
+	Matrix<t> operator *(int o);
+	Matrix<t> operator *(float o);
 	/** Perfmorms matrix multiplication */
-	Matrix<t> operator *(Matrix<t>& other);
+	Matrix<t> operator *(Matrix<t>& o);
 
 	// / / / / / / / / / / / / / / / / / / / / / / / / 
 
-	Matrix<t> operator /(int other);
-	Matrix<t>& operator /(float other);
+	Matrix<t> operator /(int o);
+	Matrix<t>& operator /(float o);
 
 	// = = = = = = = = = = = = = = = = = = = = = 
 
-	bool operator ==(int other);
-	bool operator ==(float other);
-	bool operator ==(Matrix<t>& other);
+	bool operator ==(int o);
+	bool operator ==(float o);
+	bool operator ==(Matrix<t>& o);
 
 	// != != != != != != != != != != != != != 
 
-	bool operator !=(int other);
-	bool operator !=(float other);
-	bool operator !=(Matrix<t>& other);
+	bool operator !=(int o);
+	bool operator !=(float o);
+	bool operator !=(Matrix<t>& o);
+
+	// +++++++++++++++++++++++++++
+	//void operator ++();
+
+
+	/// << << << << << << << << <<
+	template <class> friend std::ostream& operator<<(std::ostream& s, Matrix<t>& m);
 
 	/**
 	* Implementation of 1d array [] operator
 	* DON'T MIX UP WITH () OPERATOR, THAT GETS MATRIX ROW
-	* This one returns the actual `v` array element
+	* This one returns the actual element from values array
 	*/
 	t operator [](int i);
 	/**
