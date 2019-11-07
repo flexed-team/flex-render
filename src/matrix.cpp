@@ -1,22 +1,8 @@
 #include "matrix.h"
 
-// Zero constructors
-
-Matrix<int>::Matrix(unsigned int _w, unsigned int _h, bool _transpose) : w(_w), h(_h), v(_w* _h, 0), transpose(_transpose) {}
-Matrix<float>::Matrix(unsigned int _w, unsigned int _h, bool _transpose) : w(_w), h(_h), v(_w* _h, 0.f), transpose(_transpose) {}
-
-Matrix<Vec2i>::Matrix(unsigned int _w, unsigned int _h, bool _transpose) : w(_w), h(_h), v(_w* _h, Vec2i(0, 0)), transpose(_transpose) {}
-Matrix<Vec2f>::Matrix(unsigned int _w, unsigned int _h, bool _transpose) : w(_w), h(_h), v(_w* _h, Vec2f(0, 0)), transpose(_transpose) {}
-
-Matrix<Vec3i>::Matrix(unsigned int _w, unsigned int _h, bool _transpose) : w(_w), h(_h), v(_w* _h, Vec3i(0.f, 0.f, 0.f)), transpose(_transpose) {}
-Matrix<Vec3f>::Matrix(unsigned int _w, unsigned int _h, bool _transpose) : w(_w), h(_h), v(_w* _h, Vec3f(0.f, 0.f, 0.f)), transpose(_transpose) {}
-
-/// Other are cosntructors
-
+template<class t> Matrix<t>::Matrix(unsigned int _w, unsigned int _h, t _defv, bool _transpose) : w(_w), h(_h), v(_w* _h, _defv), transpose(_transpose) {}
 template<class t> Matrix<t>::Matrix(unsigned int _w, unsigned int _h, t* _v, bool _transpose) : w(_w), h(_h), v(_v, _v + _w * _h), transpose(_transpose) {};
-/** From vector */
 template<class t> Matrix<t>::Matrix(unsigned int _w, unsigned  int _h, std::vector<t> _v, bool _transpose) : w(_w), h(_h), v(_v.begin(), _v.end()), transpose(_transpose) {}
-/** From vector pointer */
 template<class t> Matrix<t>::Matrix(unsigned int _w, unsigned  int _h, std::vector<t>* _v, bool _transpose) : w(_w), h(_h), v(_v->begin(), _v->end()), transpose(_transpose) {}
 
 template<class t> void Matrix<t>::log()

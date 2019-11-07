@@ -34,8 +34,8 @@ public:
 	/** Matrix values array */
 	std::vector<t> v;
 
-	/** Zero constructor */
-	Matrix(unsigned int _w, unsigned int _h, bool _transpose = false);
+	/** Default value constructor */
+	Matrix(unsigned int _w, unsigned int _h, t _defv, bool _transpose = false);
 	/** From array pointer */
 	Matrix(unsigned int _w, unsigned int _h, t* _v, bool _transpose = false);
 	/** From vector */
@@ -126,6 +126,8 @@ private:
 	*/
 	inline void check_sizes(Matrix<t>& m);
 };
+
+template <class t> std::ostream& operator <<(std::ostream& s, Matrix<t>& m);
 
 typedef Matrix<int> Mati;
 typedef Matrix<float> Matf;
