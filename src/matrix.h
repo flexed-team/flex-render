@@ -28,14 +28,17 @@ public:
 		};
 	};
 
+	/// Changes flow of accessing `v` array members
+	bool transpose;
+
 	/// Matrix values array
-	std::vector<t> v = std::vector<t>();
+	std::vector<t> v;
 
 	// Fills matrix with zeros
-	Matrix(unsigned int _w, unsigned int _h) : w(_w), h(_h), v(_w* _h, 0) {}
-	Matrix(unsigned int _w, unsigned int _h, t* _v) : w(_w), h(_h), v(_v, _v + _w * _h) {}
-	Matrix(unsigned int _w, unsigned  int _h, std::vector<t> _v) : w(_w), h(_h), v(_v.begin(), _v.end()) {}
-	Matrix(unsigned int _w, unsigned  int _h, std::vector<t>* _v) : w(_w), h(_h), v(_v->begin(), _v->end()) {}
+	Matrix(unsigned int _w, unsigned int _h, bool _transpose = false) : w(_w), h(_h), v(_w* _h, 0), transpose(_transpose) {}
+	Matrix(unsigned int _w, unsigned int _h, t* _v, bool _transpose = false) : w(_w), h(_h), v(_v, _v + _w * _h), transpose(_transpose) {}
+	Matrix(unsigned int _w, unsigned  int _h, std::vector<t> _v, bool _transpose = false) : w(_w), h(_h), v(_v.begin(), _v.end()), transpose(_transpose) {}
+	Matrix(unsigned int _w, unsigned  int _h, std::vector<t>* _v, bool _transpose = false) : w(_w), h(_h), v(_v->begin(), _v->end()), transpose(_transpose) {}
 
 	// Methods ------------------------------------
 
@@ -68,14 +71,29 @@ public:
 
 	void log()
 	{
-		for (unsigned int i = 0; i < w * h; i++)
-		{
-			std::cout << std::setw(5) << v[i];
-			if (i % w == w - 1)
-				std::cout << "\n";
-		}
+		if (transpose)
+			for (unsigned int i = 0; i < w * h;)
+			{
+				std::cout << std::setw(5) << v[i];
+				if (i / w == h - 1) {
+					std::cout << "\n";
+					if (i == w * h - 1) break;
+					i = i % w + 1;
+				}
+				else
+					i += w;
+			}
+		else
+			for (unsigned int i = 0; i < w * h; i++)
+			{
+				std::cout << std::setw(5) << v[i];
+				if (i % w == w - 1)
+					std::cout << "\n";
+			}
 		std::cout << "\n";
 	}
+
+	//template <class > friend std::ostream& operator<<(std::ostream& s, Vec3<t>& v);
 
 	// Unary minus
 	Matrix<t> operator-()
@@ -185,11 +203,18 @@ private:
 	}
 };
 
+template <class t> std::ostream& operator<<(std::ostream& s, Matrix<t>& m) {
+	m.log();
+	return s;
+}
+
 typedef Matrix<int> Mati;
 typedef Matrix<float> Matf;
 typedef Matrix<Vec2i> Matv2i;
 typedef Matrix<Vec3i> Matv3i;
 typedef Matrix<Vec2f> Matv2f;
 typedef Matrix<Vec3f> Matv3f;
+
+
 
 #endif //__MATRIX_H__
