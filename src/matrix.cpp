@@ -201,6 +201,71 @@ template<class t> bool Matrix<t> ::operator !=(Matrix<t>& o)
 	return true;
 }
 
+// += += += += += += += += += += += += += 
+template<class t> Matrix<t>& Matrix<t>::operator +=(int o) {
+	*this = *this + o;
+	return *this;
+}
+template<class t> Matrix<t>& Matrix<t>::operator +=(float o) {
+	*this = *this + o;
+	return *this;
+}
+template<class t> Matrix<t>& Matrix<t>::operator +=(Matrix<t> o) {
+	*this = *this + o;
+	return *this;
+}
+
+// -= -= -= -= -= -= -= -= -= -= -= -= -= 
+template<class t> Matrix<t>& Matrix<t>::operator -=(int o) {
+	*this = *this - o;
+	return *this;
+}
+template<class t> Matrix<t>& Matrix<t>::operator -=(float o) {
+	*this = *this - o;
+	return *this;
+}
+template<class t> Matrix<t>& Matrix<t>::operator -=(Matrix<t> o) {
+	*this = *this - o;
+	return *this;
+}
+
+// *= *= *= *= *= *= *= *= *= *= *= *= *= 
+template<class t> Matrix<t>& Matrix<t>::operator *=(int o) {
+	*this = *this * o;
+	return *this;
+}
+template<class t> Matrix<t>& Matrix<t>::operator *=(float o) {
+	*this = *this * o;
+	return *this;
+}
+template<class t> Matrix<t>& Matrix<t>::operator *=(Matrix<t> o) {
+	*this = *this * o;
+	return *this;
+}
+
+// +++++++++++++++++++++++++++
+template<class t> Matrix<t>& Matrix<t>::operator ++() {
+	*this += 1;
+	return *this;
+}
+template<class t> Matrix<t> Matrix<t>::operator ++(int) {
+	Matrix<t> temp = *this;
+	++* this; // idk, just copied it from here https://docs.microsoft.com/ru-ru/cpp/cpp/increment-and-decrement-operator-overloading-cpp?view=vs-2019
+	return temp;
+}
+
+// ---------------------------
+template<class t> Matrix<t>& Matrix<t>::operator --() {
+	*this -= 1;
+	return *this;
+}
+
+template<class t> Matrix<t> Matrix<t>::operator --(int) {
+	Matrix<t> temp = *this;
+	--* this;
+	return temp;
+}
+
 
 // Get elements operators
 

@@ -95,9 +95,26 @@ public:
 	bool operator !=(float o);
 	bool operator !=(Matrix<t>& o);
 
-	// +++++++++++++++++++++++++++
-	//void operator ++();
+	// += += += += += += += += += += += += += 
+	Matrix<t>& operator +=(int o);
+	Matrix<t>& operator +=(float o);
+	Matrix<t>& operator +=(Matrix<t> o);
+	// -= -= -= -= -= -= -= -= -= -= -= -= -= 
+	Matrix<t>& operator -=(int o);
+	Matrix<t>& operator -=(float o);
+	Matrix<t>& operator -=(Matrix<t> o);
+	// *= *= *= *= *= *= *= *= *= *= *= *= *= 
+	Matrix<t>& operator *=(int o);
+	Matrix<t>& operator *=(float o);
+	Matrix<t>& operator *=(Matrix<t> o);
 
+	// +++++++++++++++++++++++++++
+	Matrix<t>& operator ++(); // Prefix increment operator.
+	Matrix<t> operator ++(int);// Postfix increment ope rator.
+
+	// ---------------------------
+	Matrix<t>& operator --(); // Prefix increment operator.
+	Matrix<t> operator --(int);// Postfix increment ope rator.
 
 	/// << << << << << << << << <<
 	template <class> friend std::ostream& operator<<(std::ostream& s, Matrix<t>& m);
