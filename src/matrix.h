@@ -164,4 +164,8 @@ typedef  Matrix<float> Matf;
 
 
 
+<<<<<<< HEAD
 #endif //__MATRIX_H__
+=======
+#endif //__MATRIX_H__
+>>>>>>> a279524f8a9356dc2746b2c12a68e5c95c1e7ae5
