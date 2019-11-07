@@ -7,7 +7,9 @@
 #include <vector>
 #include <cassert>
 #include <iterator>
+#include <iomanip>      // std::setw
 #include <xmmintrin.h>
+#include "geometry.h"
 
 template <class t>
 class Matrix
@@ -68,7 +70,7 @@ public:
 	{
 		for (unsigned int i = 0; i < w * h; i++)
 		{
-			printf("%5d,", v[i]);
+			std::cout << std::setw(5) << v[i];
 			if (i % w == w - 1)
 				std::cout << "\n";
 		}
@@ -166,8 +168,9 @@ public:
 		std::vector<t> _v = std::vector<t>(h * other.w);
 		for (unsigned int i = 0; i < h; i++)
 			for (unsigned int j = 0; j < other.w; j++)
-				for (unsigned int k = 0; k < w; k++)
+				for (unsigned int k = 0; k < w; k++) {
 					_v[j + i * other.w] += v[i * w + k] * other.v[k * other.w + j];
+				}
 
 		return Matrix<t>(other.w, h, &_v);
 	}
@@ -184,5 +187,9 @@ private:
 
 typedef Matrix<int> Mati;
 typedef Matrix<float> Matf;
+typedef Matrix<Vec2i> Matv2i;
+typedef Matrix<Vec3i> Matv3i;
+typedef Matrix<Vec2f> Matv2f;
+typedef Matrix<Vec3f> Matv3f;
 
 #endif //__MATRIX_H__
