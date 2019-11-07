@@ -16,36 +16,39 @@ class Matrix
 {
 public:
 	union {
-		/// height and width
+		// height and width
 		struct
 		{
 			unsigned int w, h;
 		};
-		/// n is count of cols, m is count of rows,
+		// n is count of cols, m is count of rows
 		struct
 		{
 			unsigned int n, m;
 		};
 	};
 
-	/// Changes flow of accessing `v` array members
+	/** Changes flow of accessing `v` array members */
 	bool transpose;
 
-	/// Matrix values array
+	/** Matrix values array */
 	std::vector<t> v;
 
-	// Fills matrix with zeros
+	/**  Fills matrix with zeros */
 	Matrix(unsigned int _w, unsigned int _h, bool _transpose = false) : w(_w), h(_h), v(_w* _h, 0), transpose(_transpose) {}
+	/**  Matrix from pointer to array */
 	Matrix(unsigned int _w, unsigned int _h, t* _v, bool _transpose = false) : w(_w), h(_h), v(_v, _v + _w * _h), transpose(_transpose) {}
+	/**  Matrix from vector */
 	Matrix(unsigned int _w, unsigned  int _h, std::vector<t> _v, bool _transpose = false) : w(_w), h(_h), v(_v.begin(), _v.end()), transpose(_transpose) {}
+	/**  Matrix from pointer to vector */
 	Matrix(unsigned int _w, unsigned  int _h, std::vector<t>* _v, bool _transpose = false) : w(_w), h(_h), v(_v->begin(), _v->end()), transpose(_transpose) {}
 
 	// Methods ------------------------------------
 
-	/// Gets matrix values array size
+	/** Gets matrix values array size */
 	inline int length() const { return w * h; }
 
-	/// Inserts row to matrix
+	/** Inserts row to matrix */
 	void insert_row(t* rowv, int roww)
 	{
 		assert(w == roww);
@@ -57,7 +60,7 @@ public:
 		h++;
 	}
 
-	/// Inserts col to matrix
+	/** Inserts col to matrix */
 	void insert_col(t* colv, int colh)
 	{
 		assert(h == colh);
@@ -93,9 +96,7 @@ public:
 		std::cout << "\n";
 	}
 
-	//template <class > friend std::ostream& operator<<(std::ostream& s, Vec3<t>& v);
-
-	// Unary minus
+	/** Unary minus */
 	Matrix<t> operator-()
 	{
 		t* _v = v.data();
@@ -180,6 +181,7 @@ public:
 			_v[i] -= other.v[i];
 		return Matrix<t>(w, h, _v);
 	}
+	/** Perfmorms matrix multiplication */
 	Matrix<t> operator*(Matrix<t>& other)
 	{
 		assert(w == other.h);
@@ -194,8 +196,10 @@ public:
 	}
 
 private:
-	/// Checks other matrix for size identity
-	/// Uses assert
+	/** 
+	* Checks other matrix for size identity
+	* Uses assert
+	*/
 	inline void check_sizes(Matrix<t>& m)
 	{
 		assert(w == m.w);

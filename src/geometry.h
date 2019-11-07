@@ -5,14 +5,14 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/// 2d mathematical vector
+/** 2d mathematical vector */
 template <class t> struct Vec2 {
 	union {
-		/// Texture coordinates names
+		// Texture coordinates names
 		struct { t u, v; };
-		/// Any other coords except texture
+		// Any other coords except texture
 		struct { t x, y; };
-		/// Just tuple of coordinates
+		// Just tuple of coordinates
 		t raw[2];
 	};
 	Vec2() : u(0), v(0) {}
@@ -36,13 +36,13 @@ template <class t> struct Vec2 {
 	template <class > friend std::ostream& operator<<(std::ostream& s, Vec2<t>& v);
 };
 
-/// 3d mathematical vector
+/** 3d mathematical vector */
 template <class t> struct Vec3 {
 	union {
 		struct { t x, y, z; };
-		/// For face
+		// For face
 		struct { t ivert, iuv, inorm; };
-		/// Just tuple of coordinates
+		// Just tuple of coordinates
 		t raw[3];
 	};
 	Vec3() : x(0), y(0), z(0) {}
@@ -70,19 +70,22 @@ template <class t> struct Vec3 {
 	inline Vec3<t>& operator *=(t other) { x *= other; y *= other, z *= other; return *this; }
 	inline Vec3<t>& operator /=(t other) { x /= other; y /= other, z /= other; return *this; }
 
-	/// Returns vector length
+	/** Returns vector length */
 	float norm() const { return std::sqrt(x * x + y * y + z * z); }
+
+	/** Set vector length to given value */
 	Vec3<t>& normalize(t l = 1) { *this = (*this) * (l / norm()); return *this; }
+
 	template <class > friend std::ostream& operator<<(std::ostream& s, Vec3<t>& v);
 };
 
-/// Float 2d math vector
+/** Float 2d math vector */
 typedef Vec2<float> Vec2f;
-/// Int 2d math vector
+/** Int 2d math vector */
 typedef Vec2<int>   Vec2i;
-/// Float 3d math vector
+/** Float 3d math vector */
 typedef Vec3<float> Vec3f;
-/// Int 2d math vector
+/** Int 2d math vector */
 typedef Vec3<int>   Vec3i;
 
 template <class t> std::ostream& operator<<(std::ostream& s, Vec2<t>& v) {
