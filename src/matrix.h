@@ -11,6 +11,7 @@
 #include <xmmintrin.h>
 #include "geometry.h"
 
+
 template <class t>
 class Matrix
 {
@@ -44,6 +45,12 @@ public:
 	Matrix(unsigned int _w, unsigned  int _h, std::vector<t>* _v, bool _transpose = false);
 
 
+	/**
+	* Outputs matrix
+	* Respects `transpose`
+	*/
+	void log();
+
 	/** Gets matrix values array size */
 	inline int length() const { return w * h; }
 
@@ -52,12 +59,6 @@ public:
 
 	/** Inserts col to matrix */
 	void insert_col(t* colv, int colh);
-
-	/**
-	* Outputs matrix
-	* Respects `transpose`
-	*/
-	void log();
 
 	// + + + + + + + + + + + + + + + + + + + 
 	Matrix<t> operator +(int o);

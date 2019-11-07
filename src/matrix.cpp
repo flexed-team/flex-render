@@ -5,6 +5,8 @@ template<class t> Matrix<t>::Matrix(unsigned int _w, unsigned int _h, t* _v, boo
 template<class t> Matrix<t>::Matrix(unsigned int _w, unsigned  int _h, std::vector<t> _v, bool _transpose) : w(_w), h(_h), v(_v.begin(), _v.end()), transpose(_transpose) {}
 template<class t> Matrix<t>::Matrix(unsigned int _w, unsigned  int _h, std::vector<t>* _v, bool _transpose) : w(_w), h(_h), v(_v->begin(), _v->end()), transpose(_transpose) {}
 
+
+
 template<class t> void Matrix<t>::log()
 {
 	if (transpose)
@@ -243,7 +245,7 @@ template<class t> Matrix<t>& Matrix<t>::operator *=(Matrix<t> o) {
 	return *this;
 }
 
-// +++++++++++++++++++++++++++
+//  ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++ ++
 template<class t> Matrix<t>& Matrix<t>::operator ++() {
 	*this += 1;
 	return *this;
@@ -254,7 +256,7 @@ template<class t> Matrix<t> Matrix<t>::operator ++(int) {
 	return temp;
 }
 
-// ---------------------------
+// -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 template<class t> Matrix<t>& Matrix<t>::operator --() {
 	*this -= 1;
 	return *this;
