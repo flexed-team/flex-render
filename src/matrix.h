@@ -140,13 +140,12 @@ public:
 		return Matrix<t>(w, h, _v);
 	}
 	Matrix<t> operator *(Matrix<t>& other) {
-		//check_sizes(other);
-		t* _v = new t[h * other.w];
-		for (int i = 0; i < h; i++)
-			for (int j = 0; j < other.w; j++)
-				for (int k = 0; k < w; k++) {
-					_v[j + i * other.w] += v[k + w * i] * other.v[j + k * other.w];
-				}
+		assert(w == other.h);
+      t *_v = new t[h * other.w];
+      for (int i = 0; i < h; i++)
+         for (int j = 0; j < other.w; j++)
+            for (int k = 0; k < w; k++)
+               _v[j + i * other.w] += v[i * w + k] * other.v[k * other.w + j];
 
 		return Matrix<t>(other.w, h, _v);
 	}
@@ -163,9 +162,4 @@ typedef  Matrix<int> Mati;
 typedef  Matrix<float> Matf;
 
 
-
-<<<<<<< HEAD
 #endif //__MATRIX_H__
-=======
-#endif //__MATRIX_H__
->>>>>>> a279524f8a9356dc2746b2c12a68e5c95c1e7ae5
