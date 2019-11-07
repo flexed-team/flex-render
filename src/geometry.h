@@ -1,5 +1,5 @@
-#ifndef __GEOMETRY_H__
-#define __GEOMETRY_H__
+#ifndef __MATRIX_H__
+#define __MATRIX_H__
 
 #include <cmath>
 
@@ -65,4 +65,4 @@ template <class t> std::ostream& operator<<(std::ostream& s, Vec3<t>& v) {
 	return s;
 }
 
-#endif //__GEOMETRY_H__
+#endif //__MATRIX_H__
