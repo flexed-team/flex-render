@@ -1,5 +1,5 @@
-#ifndef __GEOMETRY_H__
-#define __GEOMETRY_H__
+#ifndef __MATRIX_H__
+#define __MATRIX_H__
 
 #include <cmath>
 
@@ -166,4 +166,4 @@ typedef  Matrix<float> Matf;
 
 
 
-#endif //__GEOMETRY_H__
+#endif //__MATRIX_H__
