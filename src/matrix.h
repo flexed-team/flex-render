@@ -15,7 +15,7 @@
 template <class t>
 class Matrix
 {
-private:
+protected:
 	union {
 		// height and width
 		struct
@@ -29,7 +29,6 @@ private:
 		};
 	};
 
-protected:
 	/** Changes flow of accessing `v` array members */
 	bool transposed;
 
@@ -38,9 +37,9 @@ protected:
 
 	// Setters
 	/** Increments matrix width */
-	inline void s_iw() { if (transposed) h++; else w++; };
+	virtual inline void s_iw() { if (transposed) h++; else w++; }
 	/** Increments matrix height */
-	inline void s_ih() { if (transposed) w++; else h++; };
+	virtual inline void s_ih() { if (transposed) w++; else h++; }
 
 
 	/**
@@ -51,7 +50,7 @@ protected:
 
 public:
 
-	/** Default value constructor */
+	/** Default value constructor(zero) */
 	Matrix(unsigned int _w, unsigned int _h, t _defv, bool _transposed = false);
 	/** From array pointer */
 	Matrix(unsigned int _w, unsigned int _h, t* _v, bool _transposed = false);
@@ -65,11 +64,11 @@ public:
 	/** Gets matrix values array size */
 	inline unsigned int g_length() const { return w * h; }
 	/** Gets matrix width */
-	inline unsigned int g_w() const { if (transposed) return h; return w; }
+	virtual inline unsigned int g_w() const { if (transposed) return h; return w; }
 	/** Gets matrix height */
-	inline unsigned int g_h() const { if (transposed) return w; return h; }
-	/** Gets matrix array values */
-	inline unsigned int g_v() const { return h; }
+	virtual inline unsigned int g_h() const { if (transposed) return w; return h; }
+	/** Gets matrix array */
+	inline std::vector<t> g_v() const { return v; }
 
 	/** Inserts row to matrix */
 	void insert_row(t* rowv, int roww);
@@ -84,22 +83,22 @@ public:
 	void log();
 
 	// + + + + + + + + + + + + + + + + + + + 
-	Matrix<t> operator +(int o) ;
-	Matrix<t> operator +(float o) ;
-	Matrix<t> operator +(Matrix<t>& o) ;
+	Matrix<t> operator +(int o);
+	Matrix<t> operator +(float o);
+	Matrix<t> operator +(Matrix<t>& o);
 
 	// - - - - - - - - - - - - - - - - 
 	/** Unary minus */
-	Matrix<t> operator -() ;
-	Matrix<t> operator -(int o) ;
-	Matrix<t> operator -(float o) ;
-	Matrix<t> operator -(Matrix<t>& o) ;
+	Matrix<t> operator -();
+	Matrix<t> operator -(int o);
+	Matrix<t> operator -(float o);
+	Matrix<t> operator -(Matrix<t>& o);
 
 	// * * * * * * * * * * * * * * * * * 
 	Matrix<t> operator *(int o);
 	Matrix<t> operator *(float o);
 	/** Perfmorms matrix multiplication */
-	Matrix<t> operator *(Matrix<t>& o) const;
+	Matrix<t> operator *(Matrix<t>& o);
 
 	/** Perfmorms multiplication of matrix on 2d vector
 	*	Matrix has to be width 2 and height at least 2 (all after 2nd row will be ignored)
@@ -119,18 +118,18 @@ public:
 	Vec3f operator *(Vec3f& o) const;
 
 	// / / / / / / / / / / / / / / / / / / / / / / / / 
-	Matrix<t> operator /(int o) ;
-	Matrix<t>& operator /(float o) ;
+	Matrix<t> operator /(int o);
+	Matrix<t>& operator /(float o);
 
 	// == == == == == == == == == == == ==
-	bool operator ==(int o) ;
-	bool operator ==(float o) ;
-	bool operator ==(Matrix<t>& o) ;
+	bool operator ==(int o);
+	bool operator ==(float o);
+	bool operator ==(Matrix<t>& o);
 
 	// != != != != != != != != != != != != != 
-	bool operator !=(int o) ;
-	bool operator !=(float o) ;
-	bool operator !=(Matrix<t>& o) ;
+	bool operator !=(int o);
+	bool operator !=(float o);
+	bool operator !=(Matrix<t>& o);
 
 	// += += += += += += += += += += += += += 
 	Matrix<t>& operator +=(int o);
@@ -166,12 +165,12 @@ public:
 	* DON'T MIX UP WITH [] OPERATOR, THAT GETS MATRIX ROW
 	* This one returns the actual element from values array
 	*/
-	inline  t operator ()(unsigned int i) const;
+	inline t& operator ()(unsigned int i);
 	/**
 	* Implementation of 2d array [][] operator.
 	* Returns matrix element
 	*/
-	inline t operator () (unsigned int i1, unsigned int i2) const;
+	inline t& operator () (unsigned int i1, unsigned int i2) ;
 };
 
 template <class t> std::ostream& operator <<(std::ostream& s, Matrix<t>& m);
@@ -186,9 +185,41 @@ typedef Matrix<Vec3f> Matv3f;
 
 template<class t>
 class SquareMatrix : public Matrix<t> {
-public:
-	SquareMatrix(unsigned int _s, t* _v, bool _transpose = false) : Matrix<t>(_s, _s, _v, _transpose) {};
+protected:
+	// Getters
+	// Repalce width and height getters with single side getter
+	inline unsigned int g_w() = delete;
+	inline unsigned int g_h() = delete;
+	/** Gets matrix side */
+	inline unsigned int g_s() const { return Matrix<t>::g_w(); }
 
+public:
+	/** Default value constructor(zero) */
+	SquareMatrix(unsigned int _s, bool _transpose = false) : Matrix<t>(_s, _s, _transpose) {};
+	/** From array pointer */
+	SquareMatrix(unsigned int _s, t* _v, bool _transpose = false) : Matrix<t>(_s, _s, _v, _transpose) {};
+	/** From vector */
+	SquareMatrix(unsigned int _s, std::vector<t> _v, bool _transpose = false) : Matrix<t>(_s, _s, _v, _transpose) {};
+	/** From vector pointer */
+	SquareMatrix(unsigned int _s, std::vector<t>* _v, bool _transpose = false) : Matrix<t>(_s, _s, _v, _transpose) {};
+
+
+	double determinant() {
+		Matrix<t> A = *this;
+		double det;
+		unsigned int i, j, k;
+
+		for (i = 0; i < g_s() - 1; i++) {
+			// assert(a(i, i) == 0);
+			for (j = i + 1; j < g_s(); j++)
+				for (k = i + 1; k < g_s(); k++) {
+					A(j, k) = (A(j, k) * A(i, i) - A(j, i) * A(i, k));
+					if (i) A(j, k) /= A(i - 1, i - 1);
+				}
+		}
+
+		return A(g_s() - 1, g_s() - 1);
+	}
 };
 
 
