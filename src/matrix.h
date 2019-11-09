@@ -63,13 +63,13 @@ public:
 
 	// Getters
 	/** Gets matrix values array size */
-	inline int g_length() const { return w * h; }
+	inline unsigned int g_length() const { return w * h; }
 	/** Gets matrix width */
-	inline int g_w() const { if (transposed) return h; return w; }
+	inline unsigned int g_w() const { if (transposed) return h; return w; }
 	/** Gets matrix height */
-	inline int g_h() const { if (transposed) return w; return h; }
+	inline unsigned int g_h() const { if (transposed) return w; return h; }
 	/** Gets matrix array values */
-	inline int g_v() const { return h; }
+	inline unsigned int g_v() const { return h; }
 
 	/** Inserts row to matrix */
 	void insert_row(t* rowv, int roww);
@@ -84,43 +84,53 @@ public:
 	void log();
 
 	// + + + + + + + + + + + + + + + + + + + 
-	Matrix<t> operator +(int o) const;
-	Matrix<t> operator +(float o) const;
-	Matrix<t> operator +(Matrix<t>& o) const;
+	Matrix<t> operator +(int o) ;
+	Matrix<t> operator +(float o) ;
+	Matrix<t> operator +(Matrix<t>& o) ;
 
 	// - - - - - - - - - - - - - - - - 
 	/** Unary minus */
-	Matrix<t> operator -() const;
-	Matrix<t> operator -(int o) const;
-	Matrix<t> operator -(float o) const;
-	Matrix<t> operator -(Matrix<t>& o) const;
+	Matrix<t> operator -() ;
+	Matrix<t> operator -(int o) ;
+	Matrix<t> operator -(float o) ;
+	Matrix<t> operator -(Matrix<t>& o) ;
 
 	// * * * * * * * * * * * * * * * * * 
-	Matrix<t> operator *(int o) const;
-	Matrix<t> operator *(float o) const;
+	Matrix<t> operator *(int o);
+	Matrix<t> operator *(float o);
 	/** Perfmorms matrix multiplication */
 	Matrix<t> operator *(Matrix<t>& o) const;
 
-	// Note that if matrix height will be more than vector count of coordinates, the matrix remaining matrix will be ignored
-	/** Perfmorms multiplication of matrix on 3d vector */
+	/** Perfmorms multiplication of matrix on 2d vector
+	*	Matrix has to be width 2 and height at least 2 (all after 2nd row will be ignored)
+	*/
 	Vec2i operator *(Vec2i& o) const;
+	/** Perfmorms multiplication of matrix on 2d vector
+	*	Matrix has to be width 2 and height at least 2 (all after 2nd row will be ignored)
+	*/
 	Vec2f operator *(Vec2f& o) const;
+	/** Perfmorms multiplication of matrix on 3d vector
+	*	Matrix has to be width 3 and height at least 3 (all after 2nd row will be ignored)
+	*/
 	Vec3i operator *(Vec3i& o) const;
+	/** Perfmorms multiplication of matrix on 3d vector
+	*	Matrix has to be width 3 and height at least 3 (all after 2nd row will be ignored)
+	*/
 	Vec3f operator *(Vec3f& o) const;
 
 	// / / / / / / / / / / / / / / / / / / / / / / / / 
-	Matrix<t> operator /(int o) const;
-	Matrix<t>& operator /(float o) const;
+	Matrix<t> operator /(int o) ;
+	Matrix<t>& operator /(float o) ;
 
 	// == == == == == == == == == == == ==
-	bool operator ==(int o) const;
-	bool operator ==(float o) const;
-	bool operator ==(Matrix<t>& o) const;
+	bool operator ==(int o) ;
+	bool operator ==(float o) ;
+	bool operator ==(Matrix<t>& o) ;
 
 	// != != != != != != != != != != != != != 
-	bool operator !=(int o) const;
-	bool operator !=(float o) const;
-	bool operator !=(Matrix<t>& o) const;
+	bool operator !=(int o) ;
+	bool operator !=(float o) ;
+	bool operator !=(Matrix<t>& o) ;
 
 	// += += += += += += += += += += += += += 
 	Matrix<t>& operator +=(int o);
