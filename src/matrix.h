@@ -112,6 +112,7 @@ public:
 	// + + + + + + + + + + + + + + + + + + + 
 	Matrix<t> operator +(int o);
 	Matrix<t> operator +(float o);
+	Matrix<t> operator +(Matrix<t> o);
 	Matrix<t> operator +(Matrix<t>& o);
 
 	// - - - - - - - - - - - - - - - - 
@@ -119,14 +120,21 @@ public:
 	Matrix<t> operator -();
 	Matrix<t> operator -(int o);
 	Matrix<t> operator -(float o);
+	Matrix<t> operator -(Matrix<t> o);
 	Matrix<t> operator -(Matrix<t>& o);
 
 	// * * * * * * * * * * * * * * * * * 
 	Matrix<t> operator *(int o);
 	Matrix<t> operator *(float o);
 	/** Perfmorms matrix multiplication */
+	Matrix<t> operator *(Matrix<t> o);
+	/** Perfmorms matrix multiplication */
 	Matrix<t> operator *(Matrix<t>& o);
 
+	/** Perfmorms multiplication of matrix on 2d vector
+	*	Matrix has to be width 2 and height at least 2 (all after 2nd row will be ignored)
+	*/
+	Vec2i operator *(Vec2i o);
 	/** Perfmorms multiplication of matrix on 2d vector
 	*	Matrix has to be width 2 and height at least 2 (all after 2nd row will be ignored)
 	*/
@@ -134,13 +142,25 @@ public:
 	/** Perfmorms multiplication of matrix on 2d vector
 	*	Matrix has to be width 2 and height at least 2 (all after 2nd row will be ignored)
 	*/
+	Vec2f operator *(Vec2f o);
+	/** Perfmorms multiplication of matrix on 2d vector
+	*	Matrix has to be width 2 and height at least 2 (all after 2nd row will be ignored)
+	*/
 	Vec2f operator *(Vec2f& o) const;
 	/** Perfmorms multiplication of matrix on 3d vector
-	*	Matrix has to be width 3 and height at least 3 (all after 2nd row will be ignored)
+	*	Matrix has to be width 3 and height at least 3 (all after 3nd row will be ignored)
+	*/
+	Vec3i operator *(Vec3i o);
+	/** Perfmorms multiplication of matrix on 3d vector
+	*	Matrix has to be width 3 and height at least 3 (all after 3nd row will be ignored)
 	*/
 	Vec3i operator *(Vec3i& o) const;
 	/** Perfmorms multiplication of matrix on 3d vector
-	*	Matrix has to be width 3 and height at least 3 (all after 2nd row will be ignored)
+	*	Matrix has to be width 3 and height at least 3 (all after 3nd row will be ignored)
+	*/
+	Vec3f operator *(Vec3f o);
+	/** Perfmorms multiplication of matrix on 3d vector
+	*	Matrix has to be width 3 and height at least 3 (all after 3nd row will be ignored)
 	*/
 	Vec3f operator *(Vec3f& o) const;
 
@@ -153,11 +173,13 @@ public:
 	// == == == == == == == == == == == ==
 	bool operator ==(int o);
 	bool operator ==(float o);
+	bool operator ==(Matrix<t> o);
 	bool operator ==(Matrix<t>& o);
 
 	// != != != != != != != != != != != != != 
 	bool operator !=(int o);
 	bool operator !=(float o);
+	bool operator !=(Matrix<t> o);
 	bool operator !=(Matrix<t>& o);
 
 	// += += += += += += += += += += += += += 

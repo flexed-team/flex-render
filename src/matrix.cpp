@@ -71,6 +71,14 @@ template<class t> Matrix<t> Matrix<t>::operator +(float o) {
 		_v[i] += o;
 	return Matrix<t>(g_w(), g_h(), _v, g_transposed());
 }
+
+template<class t> Matrix<t> Matrix<t>::operator +(Matrix<t> o) {
+	check_sizes(o);
+	t* _v = v.data();
+	for (int i = 0; i < g_length(); i++)
+		_v[i] += o.v[i];
+	return Matrix<t>(g_w(), g_h(), _v, g_transposed());
+}
 template<class t> Matrix<t> Matrix<t>::operator +(Matrix<t>& o) {
 	check_sizes(o);
 	t* _v = v.data();
@@ -98,6 +106,13 @@ template<class t> Matrix<t> Matrix<t>::operator -(int o) {
 		_v[i] -= o;
 	return Matrix<t>(g_w(), g_h(), _v, g_transposed());
 }
+template<class t> Matrix<t> Matrix<t>::operator -(Matrix<t> o) {
+	check_sizes(o);
+	t* _v = v.data();
+	for (int i = 0; i < g_length(); i++)
+		_v[i] -= o.v[i];
+	return Matrix<t>(g_w(), g_h(), _v, g_transposed());
+}
 template<class t> Matrix<t> Matrix<t>::operator -(Matrix<t>& o) {
 	check_sizes(o);
 	t* _v = v.data();
@@ -121,6 +136,17 @@ template<class t>  Matrix<t> Matrix<t>::operator *(float o)
 		_v[i] *= o;
 	return Matrix<t>(g_w(), g_h(), _v, g_transposed());
 }
+template<class t> Matrix<t> Matrix<t>::operator *(Matrix<t> o)
+{
+	assert(g_w() == o.g_h() && "Multiply is impossible - origin matrix width is not equal other height");
+	Matrix<t> _m = Matrix<t>(o.g_w(), g_h(), std::vector<t>(g_h() * o.g_w()));
+	for (unsigned i = 0; i < g_h(); i++)
+		for (unsigned j = 0; j < o.g_w(); j++)
+			for (unsigned k = 0; k < g_w(); k++)
+				_m(i, j) += (*this)(i, k) * o(k, j);
+
+	return _m;
+}
 template<class t> Matrix<t> Matrix<t>::operator *(Matrix<t>& o)
 {
 	assert(g_w() == o.g_h() && "Multiply is impossible - origin matrix width is not equal other height");
@@ -132,10 +158,36 @@ template<class t> Matrix<t> Matrix<t>::operator *(Matrix<t>& o)
 
 	return _m;
 }
+
+
+
+
+
+template<class t> Vec2i Matrix<t>::operator *(Vec2i o)
+{
+	assert(g_w() == 2 && g_h() >= 2 && "Inappropriate matrix dimensions for vector multiplication - width must be 2 and heigth at least 2");
+	Vec2i _v = Vec2i();
+	for (unsigned i = 0; i < g_h(); i++)
+		for (unsigned k = 0; k < 2; k++)
+			_v.raw[i] += (*this)(i, k) * o.raw[k];
+
+	return _v;
+}
 template<class t> Vec2i Matrix<t>::operator *(Vec2i& o) const
 {
 	assert(g_w() == 2 && g_h() >= 2 && "Inappropriate matrix dimensions for vector multiplication - width must be 2 and heigth at least 2");
 	Vec2i _v = Vec2i();
+	for (unsigned i = 0; i < g_h(); i++)
+		for (unsigned k = 0; k < 2; k++)
+			_v.raw[i] += (*this)(i, k) * o.raw[k];
+
+	return _v;
+}
+
+template<class t> Vec2f Matrix<t>::operator *(Vec2f o)
+{
+	assert(g_w() == 2 && g_h() >= 2 && "Inappropriate matrix dimensions for vector multiplication - width must be 2 and heigth at least 2");
+	Vec2f _v = Vec2f();
 	for (unsigned i = 0; i < g_h(); i++)
 		for (unsigned k = 0; k < 2; k++)
 			_v.raw[i] += (*this)(i, k) * o.raw[k];
@@ -152,6 +204,17 @@ template<class t> Vec2f Matrix<t>::operator *(Vec2f& o) const
 
 	return _v;
 }
+
+template<class t> Vec3i Matrix<t>::operator *(Vec3i o)
+{
+	assert(g_w() == 3 && g_h() >= 3 && "Inappropriate matrix dimensions for vector multiplication - width must be 3 and heigth at least 3");
+	Vec3i _v = Vec3i();
+	for (unsigned i = 0; i < g_h(); i++)
+		for (unsigned k = 0; k < 3; k++)
+			_v.raw[i] += (*this)(i, k) * o.raw[k];
+
+	return _v;
+}
 template<class t> Vec3i Matrix<t>::operator *(Vec3i& o) const
 {
 	assert(g_w() == 3 && g_h() >= 3 && "Inappropriate matrix dimensions for vector multiplication - width must be 3 and heigth at least 3");
@@ -159,6 +222,18 @@ template<class t> Vec3i Matrix<t>::operator *(Vec3i& o) const
 	for (unsigned i = 0; i < g_h(); i++)
 		for (unsigned k = 0; k < 3; k++)
 			_v.raw[i] += (*this)(i, k) * o.raw[k];
+
+	return _v;
+}
+
+template<class t> Vec3f Matrix<t>::operator *(Vec3f o)
+{
+	assert(g_w() == 3 && g_h() >= 3 && "Inappropriate matrix dimensions for vector multiplication - width must be 3 and heigth at least 3");
+	Vec3f _v = Vec3f();
+	for (unsigned int i = 0; i < g_h(); i++)
+		for (unsigned int k = 0; k < 3; k++) {
+			_v.raw[i] += (*this)(i, k) * o.raw[k];
+		}
 
 	return _v;
 }
@@ -173,6 +248,8 @@ template<class t> Vec3f Matrix<t>::operator *(Vec3f& o) const
 
 	return _v;
 }
+
+
 
 // / / / / / / / / / / / / / / / / / / / / / / / / 
 template<class t> Matrix<t> Matrix<t>::operator /(int o)
@@ -220,6 +297,14 @@ template<class t> bool Matrix<t>::operator ==(float o)
 			if ((*this)(i, j) != o) return false;
 	return true;
 }
+template<class t> bool Matrix<t>::operator ==(Matrix<t> o)
+{
+	check_sizes(o);
+	for (unsigned i = 0; i < g_h(); i++)
+		for (unsigned j = 0; j < g_w(); j++)
+			if ((*this)(i, j) != o(i, j)) return false;
+	return true;
+}
 template<class t> bool Matrix<t>::operator ==(Matrix<t>& o)
 {
 	check_sizes(o);
@@ -245,6 +330,14 @@ template<class t> bool Matrix<t> ::operator !=(float o)
 			if ((*this)(i, j) == o) return false;
 	return true;
 }
+template<class t> bool Matrix<t> ::operator !=(Matrix<t> o)
+{
+	check_sizes(o);
+	for (unsigned i = 0; i < g_h(); i++)
+		for (unsigned j = 0; j < g_w(); j++)
+			if ((*this)(i, j) == o(i, j)) return false;
+	return true;
+}
 template<class t> bool Matrix<t> ::operator !=(Matrix<t>& o)
 {
 	check_sizes(o);
@@ -253,6 +346,7 @@ template<class t> bool Matrix<t> ::operator !=(Matrix<t>& o)
 			if ((*this)(i, j) == o(i, j)) return false;
 	return true;
 }
+
 
 // += += += += += += += += += += += += += 
 template<class t> Matrix<t>& Matrix<t>::operator +=(int o) {
@@ -422,3 +516,6 @@ template<class t> SquareMatrix<t> SquareMatrix<t>::inverse() {
 
 	return _m;
 }
+
+
+
