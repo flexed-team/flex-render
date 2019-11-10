@@ -22,16 +22,16 @@ template <class t> struct Vec2 {
 	inline Vec2<t> operator -(const Vec2<t>& V) const { return Vec2<t>(u - V.u, v - V.v); }
 
 	// Vec + n
-	inline Vec2<t> operator +(t other)          const { return Vec2<t>(u + other, v + other); }
-	inline Vec2<t> operator *(t other)          const { return Vec2<t>(u * other, v * other); }
+	inline Vec2<t> operator +(const t other) const { return Vec2<t>(u + other, v + other); }
+	inline Vec2<t> operator *(const t other) const { return Vec2<t>(u * other, v * other); }
 
 	// Vec += Vec
-	inline Vec2<t>& operator +=(Vec2<t>& v) { x += v.x; y += v.y; return *this; }
-	inline Vec2<t>& operator -=(Vec2<t>& v) { x -= v.x; y -= v.y; return *this; }
+	inline Vec2<t>& operator +=(const Vec2<t>& v) { x += v.x; y += v.y; return *this; }
+	inline Vec2<t>& operator -=(const Vec2<t>& v) { x -= v.x; y -= v.y; return *this; }
 
 	// Vec += n
-	inline Vec2<t>& operator +=(t other) { x += other; y += other; return *this; }
-	inline Vec2<t>& operator -=(t other) { x -= other; y -= other; return *this; }
+	inline Vec2<t>& operator +=(const t other) { x += other; y += other; return *this; }
+	inline Vec2<t>& operator -=(const t other) { x -= other; y -= other; return *this; }
 
 	template <class > friend std::ostream& operator<<(std::ostream& s, Vec2<t>& v);
 };
@@ -48,27 +48,27 @@ template <class t> struct Vec3 {
 	Vec3() : x(0), y(0), z(0) {}
 	Vec3(t _x, t _y, t _z) : x(_x), y(_y), z(_z) {}
 	// Vec + Vec
-	inline Vec3<t> operator ^(Vec3<t>& v) const { return Vec3<t>(y * v.z - z * v.y, z * v.x - x * v.z, x * v.y - y * v.x); }
-	inline Vec3<t> operator +(Vec3<t>& v) const { return Vec3<t>(x + v.x, y + v.y, z + v.z); }
-	inline Vec3<t> operator -(Vec3<t>& v) const { return Vec3<t>(x - v.x, y - v.y, z - v.z); }
-	inline t       operator *(Vec3<t>& v) const { return x * v.x + y * v.y + z * v.z; } // Scalar mult
+	inline Vec3<t> operator ^(const Vec3<t>& v) const { return Vec3<t>(y * v.z - z * v.y, z * v.x - x * v.z, x * v.y - y * v.x); }
+	inline Vec3<t> operator +(const Vec3<t>& v) const { return Vec3<t>(x + v.x, y + v.y, z + v.z); }
+	inline Vec3<t> operator -(const Vec3<t>& v) const { return Vec3<t>(x - v.x, y - v.y, z - v.z); }
+	inline t       operator *(const Vec3<t>& v) const { return x * v.x + y * v.y + z * v.z; } // Scalar mult
 
 	// Vec += Vec
-	inline Vec3<t>& operator +=(Vec3<t>& v) { x += v.x; y += v.y, z += v.z; return *this; }
-	inline Vec3<t>& operator -=(Vec3<t>& v) { x -= v.x; y -= v.y, z -= v.z; return *this; }
-	inline Vec3<t>& operator ^=(Vec3<t>& v) { x = y * v.z - z * v.y; y = z * v.x - x * v.z; z = x * v.y - y * v.x; return *this; }
+	inline Vec3<t>& operator +=(const Vec3<t>& v) { x += v.x; y += v.y, z += v.z; return *this; }
+	inline Vec3<t>& operator -=(const Vec3<t>& v) { x -= v.x; y -= v.y, z -= v.z; return *this; }
+	inline Vec3<t>& operator ^=(const Vec3<t>& v) { x = y * v.z - z * v.y; y = z * v.x - x * v.z; z = x * v.y - y * v.x; return *this; }
 
 	// Vec + n
-	inline Vec3<t> operator +(t other) const { return Vec3<t>(x + other, y + other, z + other); }
-	inline Vec3<t> operator -(t other) const { return Vec3<t>(x - other, y - other, z - other); }
-	inline Vec3<t> operator *(t other) const { return Vec3<t>(x * other, y * other, z * other); }
-	inline Vec3<t> operator /(t other) const { return Vec3<t>(x / other, y / other, z / other); }
+	inline Vec3<t> operator +(const t other) const { return Vec3<t>(x + other, y + other, z + other); }
+	inline Vec3<t> operator -(const t other) const { return Vec3<t>(x - other, y - other, z - other); }
+	inline Vec3<t> operator *(const t other) const { return Vec3<t>(x * other, y * other, z * other); }
+	inline Vec3<t> operator /(const t other) const { return Vec3<t>(x / other, y / other, z / other); }
 
 	// Vec += n
-	inline Vec3<t>& operator +=(t other) { x += other; y += other, z += other; return *this; }
-	inline Vec3<t>& operator -=(t other) { x -= other; y -= other, z -= other; return *this; }
-	inline Vec3<t>& operator *=(t other) { x *= other; y *= other, z *= other; return *this; }
-	inline Vec3<t>& operator /=(t other) { x /= other; y /= other, z /= other; return *this; }
+	inline Vec3<t>& operator +=(const t other) { x += other; y += other, z += other; return *this; }
+	inline Vec3<t>& operator -=(const t other) { x -= other; y -= other, z -= other; return *this; }
+	inline Vec3<t>& operator *=(const t other) { x *= other; y *= other, z *= other; return *this; }
+	inline Vec3<t>& operator /=(const t other) { x /= other; y /= other, z /= other; return *this; }
 
 	/** Returns vector length */
 	float norm() const { return std::sqrt(x * x + y * y + z * z); }
