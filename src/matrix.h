@@ -77,7 +77,8 @@ public:
 	/** Inserts col to matrix */
 	void insert_col(t* colv, int colh);
 
-	void for_each(std::function<t(const t&)> callback);
+	/** Applies function for every element of matrix array */
+	void for_each(std::function<void(t&)> callback);
 
 	/**
 	* Outputs matrix

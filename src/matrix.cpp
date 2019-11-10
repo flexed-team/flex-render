@@ -45,10 +45,10 @@ template<class t> void Matrix<t>::insert_col(t* colv, int colh)
 		v.insert(v.begin() + add + i * g_w(), colv[i]);
 }
 
-template<class t> void Matrix<t>::for_each(std::function<t(const t&)> callback)
+template<class t> void Matrix<t>::for_each(std::function<void(t&)> callback)
 {
 	for (int i = 0; i < g_length(); i++) {
-		v[i] = callback(v[i]);
+		callback(v[i]);
 	}
 }
 
