@@ -357,3 +357,68 @@ template <class t> std::ostream& operator <<(std::ostream& s, Matrix<t>& m) {
 	m.log();
 	return s;
 }
+
+
+
+
+
+template<class t> SquareMatrix<t>::SquareMatrix(const Matrix<t>& m) : Matrix<t>(m) {}
+
+template<class t> SquareMatrix<t>::SquareMatrix(const SquareMatrix<t>& m, t* _v) : Matrix<t>(m, _v) {}
+template<class t> SquareMatrix<t>::SquareMatrix(const SquareMatrix<t>& m, std::vector<t> _v) : Matrix<t>(m, _v) {}
+template<class t> SquareMatrix<t>::SquareMatrix(const SquareMatrix<t>& m, std::vector<t>* _v) : Matrix<t>(m, _v) {}
+
+
+template<class t> SquareMatrix<t>::SquareMatrix(unsigned _s, bool _transpose) : Matrix<t>(_s, _s, _transpose) {};
+template<class t> SquareMatrix<t>::SquareMatrix(unsigned _s, t* _v, bool _transpose) : Matrix<t>(_s, _s, _v, _transpose) {};
+template<class t> SquareMatrix<t>::SquareMatrix(unsigned _s, std::vector<t> _v, bool _transpose) : Matrix<t>(_s, _s, _v, _transpose) {};
+template<class t> SquareMatrix<t>::SquareMatrix(unsigned _s, std::vector<t>* _v, bool _transpose) : Matrix<t>(_s, _s, _v, _transpose) {};
+
+
+
+template<class t> SquareMatrix<t> SquareMatrix<t>::cut_matrix(unsigned r, unsigned c) {
+	std::vector<t> _v = std::vector<t>();
+	for (unsigned i = 0; i < g_s(); i++) {
+		if (i == r) continue;
+		for (unsigned j = 0; j < g_s(); j++) {
+			if (j == c) continue;
+			_v.push_back((*this)(i, j));
+		}
+	}
+	//return SquareMatrix(g_s() - 1, _v, false);
+	return SquareMatrix(g_s() - 1, _v, Matrix<t>::g_transposed());
+}
+
+template<class t> long double SquareMatrix<t>::determinant() {
+	SquareMatrix<t> A = *this;
+	const unsigned size = A.g_s();
+
+	for (unsigned i = 0; i < size - 1; i++) {
+		for (unsigned j = i + 1; j < size; j++) {
+			for (unsigned k = i + 1; k < size; k++) {
+				A(j, k) = (A(j, k) * A(i, i) - A(j, i) * A(i, k));
+				if (i) A(j, k) /= A(i - 1, i - 1);
+			}
+		}
+	}
+
+	return A(size - 1, size - 1);
+}
+
+template<class t> SquareMatrix<t> SquareMatrix<t>::inverse() {
+	long double det = determinant();
+	if (det == 0)
+		throw MatrixException("Can't inverse: determinant equals zero");
+
+	// Find adjoint matrix
+	SquareMatrix<t> _m = (*this);
+	for (unsigned i = 0; i < g_s(); i++) {
+		for (unsigned j = 0; j < g_s(); j++) {
+			_m(i, j) = complement(i, j);
+		}
+	}
+	_m.transpose();
+	_m /= det;
+
+	return _m;
+}
