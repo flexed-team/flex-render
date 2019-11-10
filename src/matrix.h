@@ -13,6 +13,14 @@
 #include "geometry.h"
 
 
+class MatrixException : public std::runtime_error {
+public:
+	/** Default constructor */
+	MatrixException() :runtime_error("Unexepcted error") {}
+	/** Custom message constructor */
+	MatrixException(std::string msg) :runtime_error(msg.c_str()) {}
+};
+
 template <class t>
 class Matrix
 {
@@ -51,14 +59,16 @@ protected:
 
 public:
 
+	/** Copy constructor */
+	Matrix(const Matrix<t>& m, bool _transpose = false);
 	/** Default value constructor(zero) */
-	Matrix(unsigned int _w, unsigned int _h, t _defv, bool _transposed = false);
+	Matrix(unsigned int _w, unsigned int _h, t _defv, bool _transpose = false);
 	/** From array pointer */
-	Matrix(unsigned int _w, unsigned int _h, t* _v, bool _transposed = false);
+	Matrix(unsigned int _w, unsigned int _h, t* _v, bool _transpose = false);
 	/** From vector */
-	Matrix(unsigned int _w, unsigned  int _h, std::vector<t> _v, bool _transposed = false);
+	Matrix(unsigned int _w, unsigned  int _h, std::vector<t> _v, bool _transpose = false);
 	/** From vector pointer */
-	Matrix(unsigned int _w, unsigned  int _h, std::vector<t>* _v, bool _transposed = false);
+	Matrix(unsigned int _w, unsigned  int _h, std::vector<t>* _v, bool _transpose = false);
 
 
 	// Getters
@@ -70,6 +80,12 @@ public:
 	virtual inline unsigned int g_h() const { if (transposed) return w; return h; }
 	/** Gets matrix array */
 	inline std::vector<t> g_v() const { return v; }
+	/** Gets `transposed` flag */
+	inline bool g_transposed() const { return transposed; }
+
+	// Setters
+	/** Switches `transposed` flag to an opposite */
+	inline void transpose() { transposed = !transposed; }
 
 	/** Inserts row to matrix */
 	void insert_row(t* rowv, int roww);
@@ -123,7 +139,9 @@ public:
 
 	// / / / / / / / / / / / / / / / / / / / / / / / / 
 	Matrix<t> operator /(int o);
-	Matrix<t>& operator /(float o);
+	Matrix<t> operator /(float o);
+	Matrix<t> operator /(double o);
+	Matrix<t> operator /(long double o);
 
 	// == == == == == == == == == == == ==
 	bool operator ==(int o);
@@ -147,6 +165,11 @@ public:
 	Matrix<t>& operator *=(int o);
 	Matrix<t>& operator *=(float o);
 	Matrix<t>& operator *=(Matrix<t> o);
+	// /= /= /= /= /= /= /= /= /= /= /= /= 
+	Matrix<t>& operator /=(int o);
+	Matrix<t>& operator /=(float o);
+	Matrix<t>& operator /=(double o);
+	Matrix<t>& operator /=(long double o);
 
 	// +++++++++++++++++++++++++++
 	Matrix<t>& operator ++(); // Prefix increment operator.
@@ -188,45 +211,87 @@ typedef Matrix<Vec3f> Matv3f;
 
 template<class t>
 class SquareMatrix : public Matrix<t> {
-protected:
+public:
+	/** Copy constructor */
+	SquareMatrix(const SquareMatrix<t>& m, bool _transpose = false) : Matrix<t>(m) {}
+	/** Default value constructor(zero) */
+	SquareMatrix(unsigned _s, bool _transpose = false) : Matrix<t>(_s, _s, _transpose) {};
+	/** From array pointer */
+	SquareMatrix(unsigned _s, t* _v, bool _transpose = false) : Matrix<t>(_s, _s, _v, _transpose) {};
+	/** From vector */
+	SquareMatrix(unsigned _s, std::vector<t> _v, bool _transpose = false) : Matrix<t>(_s, _s, _v, _transpose) {};
+	/** From vector pointer */
+	SquareMatrix(unsigned _s, std::vector<t>* _v, bool _transpose = false) : Matrix<t>(_s, _s, _v, _transpose) {};
+
 	// Getters
 	// Replace width and height getters with single side getter
-	inline unsigned int g_w() = delete;
-	inline unsigned int g_h() = delete;
+	inline unsigned g_w() = delete;
+	inline unsigned g_h() = delete;
 	/** Gets matrix side */
-	inline unsigned int g_s() const { return Matrix<t>::g_w(); }
+	inline unsigned g_s() const { return Matrix<t>::g_w(); }
 
-public:
-	/** Default value constructor(zero) */
-	SquareMatrix(unsigned int _s, bool _transpose = false) : Matrix<t>(_s, _s, _transpose) {};
-	/** From array pointer */
-	SquareMatrix(unsigned int _s, t* _v, bool _transpose = false) : Matrix<t>(_s, _s, _v, _transpose) {};
-	/** From vector */
-	SquareMatrix(unsigned int _s, std::vector<t> _v, bool _transpose = false) : Matrix<t>(_s, _s, _v, _transpose) {};
-	/** From vector pointer */
-	SquareMatrix(unsigned int _s, std::vector<t>* _v, bool _transpose = false) : Matrix<t>(_s, _s, _v, _transpose) {};
 
+	/** Gets a matrix of a lower order by cutting down row and column */
+	SquareMatrix<t> cut_matrix(unsigned r, unsigned c) {
+		std::vector<t> _v = std::vector<t>();
+		for (unsigned i = 0; i < g_s(); i++) {
+			if (i == r) continue;
+			for (unsigned j = 0; j < g_s(); j++) {
+				if (j == c) continue;
+				_v.push_back((*this)(i, j));
+			}
+		}
+		return SquareMatrix(g_s() - 1, _v, false);
+	}
 
 	/** Implementation of the Bareiss algorithm
 	*	Copied from https://cs.nyu.edu/exact/core/download/core_v1.4/core_v1.4/progs/bareiss/bareiss.cpp
 	*/
 	long double determinant() {
-		Matrix<t> A = *this;
-		double det;
-		unsigned int i, j, k;
+		SquareMatrix<t> A = *this;
+		const unsigned size = A.g_s();
 
-		for (i = 0; i < g_s() - 1; i++) {
-			for (j = i + 1; j < g_s(); j++)
-				for (k = i + 1; k < g_s(); k++) {
+		for (unsigned i = 0; i < size - 1; i++) {
+			for (unsigned j = i + 1; j < size; j++) {
+				for (unsigned k = i + 1; k < size; k++) {
 					A(j, k) = (A(j, k) * A(i, i) - A(j, i) * A(i, k));
 					if (i) A(j, k) /= A(i - 1, i - 1);
 				}
+			}
 		}
 
-		return A(g_s() - 1, g_s() - 1);
+		return A(size - 1, size - 1);
+	}
+
+	/** Finds minor of matrix */
+	inline long double minor(int r, int c) {
+		return cut_matrix(r, c).determinant();
+	}
+
+	/** Finds algebraic */
+	inline long double complement(int r, int c) {
+		return (((r + c) % 2) ? -1 : 1) * minor(r, c);
+	}
+
+	/** Returns inverse matrix */
+	SquareMatrix<t> inverse() {
+		long double det = determinant();
+		if (det == 0)
+			throw MatrixException("Can't inverse: determinant equals zero");
+
+		// Find adjoint matrix
+		SquareMatrix<t> _m = (*this);
+		for (unsigned i = 0; i < g_s(); i++) {
+			for (unsigned j = 0; j < g_s(); j++) {
+				_m(i, j) = complement(i, j);
+			}
+		}
+		_m.transpose();
+		_m /= det;
+
+		return _m;
 	}
 };
-
 
 class MatrixMath {
 public:
