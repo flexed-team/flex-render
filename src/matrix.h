@@ -60,15 +60,23 @@ protected:
 public:
 
 	/** Copy constructor */
-	Matrix(const Matrix<t>& m, bool _transpose = false);
+	Matrix(const Matrix<t>& m);
+
+	/** Skeleton constructor from array pointer */
+	Matrix(const Matrix<t>& m, t* _v);
+	/** Skeleton constructor from vector */
+	Matrix(const Matrix<t>& m, std::vector<t> _v);
+	/** Skeleton constructor from vector pointer */
+	Matrix(const Matrix<t>& m, std::vector<t>* _v);
+
 	/** Default value constructor(zero) */
-	Matrix(unsigned int _w, unsigned int _h, t _defv, bool _transpose = false);
+	Matrix(unsigned _w, unsigned _h, t _defv, bool _transposed = false);
 	/** From array pointer */
-	Matrix(unsigned int _w, unsigned int _h, t* _v, bool _transpose = false);
+	Matrix(unsigned _w, unsigned _h, t* _v, bool _transposed = false);
 	/** From vector */
-	Matrix(unsigned int _w, unsigned  int _h, std::vector<t> _v, bool _transpose = false);
+	Matrix(unsigned _w, unsigned _h, std::vector<t> _v, bool _transposed = false);
 	/** From vector pointer */
-	Matrix(unsigned int _w, unsigned  int _h, std::vector<t>* _v, bool _transpose = false);
+	Matrix(unsigned _w, unsigned _h, std::vector<t>* _v, bool _transposed = false);
 
 
 	// Getters
@@ -156,15 +164,15 @@ public:
 	// += += += += += += += += += += += += += 
 	Matrix<t>& operator +=(int o);
 	Matrix<t>& operator +=(float o);
-	Matrix<t>& operator +=(Matrix<t> o);
+	Matrix<t>& operator +=(Matrix<t>& o);
 	// -= -= -= -= -= -= -= -= -= -= -= -= -= 
 	Matrix<t>& operator -=(int o);
 	Matrix<t>& operator -=(float o);
-	Matrix<t>& operator -=(Matrix<t> o);
+	Matrix<t>& operator -=(Matrix<t>& o);
 	// *= *= *= *= *= *= *= *= *= *= *= *= *= 
 	Matrix<t>& operator *=(int o);
 	Matrix<t>& operator *=(float o);
-	Matrix<t>& operator *=(Matrix<t> o);
+	Matrix<t>& operator *=(Matrix<t>& o);
 	// /= /= /= /= /= /= /= /= /= /= /= /= 
 	Matrix<t>& operator /=(int o);
 	Matrix<t>& operator /=(float o);
@@ -186,18 +194,18 @@ public:
 	* Implementation of 2d array [] operator.
 	* Returns row by index
 	*/
-	inline std::vector<t>  operator [](unsigned int i) const;
+	inline std::vector<t>  operator [](unsigned i) const;
 	/**
 	* Implementation of 1d array [] operator
 	* DON'T MIX UP WITH [] OPERATOR, THAT GETS MATRIX ROW
 	* This one returns the actual element from values array
 	*/
-	inline t& operator ()(unsigned int i);
+	inline t& operator ()(unsigned i);
 	/**
 	* Implementation of 2d array [][] operator.
 	* Returns matrix element
 	*/
-	inline t& operator () (unsigned int i1, unsigned int i2);
+	inline t& operator () (unsigned i1, unsigned i2);
 };
 
 template <class t> std::ostream& operator <<(std::ostream& s, Matrix<t>& m);
@@ -213,7 +221,15 @@ template<class t>
 class SquareMatrix : public Matrix<t> {
 public:
 	/** Copy constructor */
-	SquareMatrix(const SquareMatrix<t>& m, bool _transpose = false) : Matrix<t>(m) {}
+	SquareMatrix(const Matrix<t>& m) : Matrix<t>(m) {}
+
+	/** Skeleton constructor from array pointer */
+	SquareMatrix(const SquareMatrix<t>& m, t* _v) : Matrix<t>(m, _v) {}
+	/** Skeleton constructor from vector */
+	SquareMatrix(const SquareMatrix<t>& m, std::vector<t> _v) : Matrix<t>(m, _v) {}
+	/** Skeleton constructor from vector pointer */
+	SquareMatrix(const SquareMatrix<t>& m, std::vector<t>* _v) : Matrix<t>(m, _v) {}
+
 	/** Default value constructor(zero) */
 	SquareMatrix(unsigned _s, bool _transpose = false) : Matrix<t>(_s, _s, _transpose) {};
 	/** From array pointer */
@@ -241,7 +257,8 @@ public:
 				_v.push_back((*this)(i, j));
 			}
 		}
-		return SquareMatrix(g_s() - 1, _v, false);
+		//return SquareMatrix(g_s() - 1, _v, false);
+		return SquareMatrix(g_s() - 1, _v, Matrix<t>::g_transposed());
 	}
 
 	/** Implementation of the Bareiss algorithm

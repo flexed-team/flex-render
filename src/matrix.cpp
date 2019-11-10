@@ -1,7 +1,11 @@
 #include "matrix.h"
 #include "geometry.h"
 
-template<class t> Matrix<t>::Matrix(const Matrix<t>& m, bool _transpose) : w(m.w), h(m.h), v(m.v.begin(), m.v.end()), transposed(m.transposed) {}
+template<class t> Matrix<t>::Matrix(const Matrix<t>& m) : w(m.w), h(m.h), v(m.v.begin(), m.v.end()), transposed(m.transposed) {}
+template<class t> Matrix<t>::Matrix(const Matrix<t>& m, t* _v) : w(m.w), h(m.h), v(_v, _v + m.w * m.h), transposed(m.transposed) {}
+template<class t> Matrix<t>::Matrix(const Matrix<t>& m, std::vector<t> _v) : w(m.w), h(m.h), v(_v.begin(), _v.end()), transposed(m.transposed) {}
+template<class t> Matrix<t>::Matrix(const Matrix<t>& m, std::vector<t>* _v) : w(m.w), h(m.h), v(_v->begin(), _v->end()), transposed(m.transposed) {}
+
 template<class t> Matrix<t>::Matrix(unsigned _w, unsigned _h, t _defv, bool _transposed) : w(_w), h(_h), v(_w* _h, _defv), transposed(_transposed) {}
 template<class t> Matrix<t>::Matrix(unsigned _w, unsigned _h, t* _v, bool _transposed) : w(_w), h(_h), v(_v, _v + _w * _h), transposed(_transposed) {};
 template<class t> Matrix<t>::Matrix(unsigned _w, unsigned _h, std::vector<t> _v, bool _transposed) : w(_w), h(_h), v(_v.begin(), _v.end()), transposed(_transposed) {}
@@ -10,8 +14,7 @@ template<class t> Matrix<t>::Matrix(unsigned _w, unsigned _h, std::vector<t>* _v
 
 template<class t> void Matrix<t>::check_sizes(Matrix<t>& m) const
 {
-	assert(g_w() == m.g_w());
-	assert(g_h() == m.g_h());
+	assert(g_w() == m.g_w() && g_h() == m.g_h());
 }
 
 template<class t> void Matrix<t>::log()
@@ -59,7 +62,8 @@ template<class t> Matrix<t> Matrix<t>::operator +(int o) {
 	t* _v = v.data();
 	for (int i = 0; i < g_length(); i++)
 		_v[i] += o;
-	return Matrix<t>(g_w(), g_h(), _v, g_transposed());
+	//return Matrix<t>(g_w(), g_h(), _v, g_transposed());
+	return Matrix<t>((*this), _v);
 }
 template<class t> Matrix<t> Matrix<t>::operator +(float o) {
 	t* _v = v.data();
@@ -195,34 +199,33 @@ template<class t> Matrix<t> Matrix<t>::operator /(double o)
 template<class t> Matrix<t> Matrix<t>::operator /(long double o)
 {
 	t* _v = v.data();
-	for (int i = 0; i < g_length(); i++) 
+	for (int i = 0; i < g_length(); i++)
 		_v[i] /= o;
 	return Matrix<t>(g_w(), g_h(), _v, g_transposed());
 }
 
 
 // == == == == == == == == == == == 
-// TODO: rewrite == to support transpose
 template<class t> bool Matrix<t>::operator ==(int o)
 {
-	t* _v = v.data();
-	for (int i = 0; i < g_length(); i++)
-		if (_v[i] != o) return false;
+	for (unsigned i = 0; i < g_h(); i++)
+		for (unsigned j = 0; j < g_w(); j++)
+			if ((*this)(i, j) != o) return false;
 	return true;
 }
 template<class t> bool Matrix<t>::operator ==(float o)
 {
-	t* _v = v.data();
-	for (int i = 0; i < g_length(); i++)
-		if (_v[i] != o) return false;
+	for (unsigned i = 0; i < g_h(); i++)
+		for (unsigned j = 0; j < g_w(); j++)
+			if ((*this)(i, j) != o) return false;
 	return true;
 }
 template<class t> bool Matrix<t>::operator ==(Matrix<t>& o)
 {
 	check_sizes(o);
-	t* _v = v.data();
-	for (int i = 0; i < g_length(); i++)
-		if (_v[i] != o.v[i]) return false;
+	for (unsigned i = 0; i < g_h(); i++)
+		for (unsigned j = 0; j < g_w(); j++)
+			if ((*this)(i, j) != o(i, j)) return false;
 	return true;
 }
 
@@ -230,24 +233,24 @@ template<class t> bool Matrix<t>::operator ==(Matrix<t>& o)
 // != != != != != != != != != != != != !=
 template<class t> bool Matrix<t>::operator !=(int o)
 {
-	t* _v = v.data();
-	for (int i = 0; i < g_length(); i++)
-		if (_v[i] == o) return false;
+	for (unsigned i = 0; i < g_h(); i++)
+		for (unsigned j = 0; j < g_w(); j++)
+			if ((*this)(i, j) == o) return false;
 	return true;
 }
 template<class t> bool Matrix<t> ::operator !=(float o)
 {
-	t* _v = v.data();
-	for (int i = 0; i < g_length(); i++)
-		if (_v[i] == o) return false;
+	for (unsigned i = 0; i < g_h(); i++)
+		for (unsigned j = 0; j < g_w(); j++)
+			if ((*this)(i, j) == o) return false;
 	return true;
 }
 template<class t> bool Matrix<t> ::operator !=(Matrix<t>& o)
 {
 	check_sizes(o);
-	t* _v = v.data();
-	for (int i = 0; i < g_length(); i++)
-		if (_v[i] == o.v[i]) return false;
+	for (unsigned i = 0; i < g_h(); i++)
+		for (unsigned j = 0; j < g_w(); j++)
+			if ((*this)(i, j) == o(i, j)) return false;
 	return true;
 }
 
@@ -260,7 +263,7 @@ template<class t> Matrix<t>& Matrix<t>::operator +=(float o) {
 	*this = *this + o;
 	return *this;
 }
-template<class t> Matrix<t>& Matrix<t>::operator +=(Matrix<t> o) {
+template<class t> Matrix<t>& Matrix<t>::operator +=(Matrix<t>& o) {
 	*this = *this + o;
 	return *this;
 }
@@ -274,7 +277,7 @@ template<class t> Matrix<t>& Matrix<t>::operator -=(float o) {
 	*this = *this - o;
 	return *this;
 }
-template<class t> Matrix<t>& Matrix<t>::operator -=(Matrix<t> o) {
+template<class t> Matrix<t>& Matrix<t>::operator -=(Matrix<t>& o) {
 	*this = *this - o;
 	return *this;
 }
@@ -288,7 +291,7 @@ template<class t> Matrix<t>& Matrix<t>::operator *=(float o) {
 	*this = *this * o;
 	return *this;
 }
-template<class t> Matrix<t>& Matrix<t>::operator *=(Matrix<t> o) {
+template<class t> Matrix<t>& Matrix<t>::operator *=(Matrix<t>& o) {
 	*this = *this * o;
 	return *this;
 }
