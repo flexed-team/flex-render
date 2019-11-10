@@ -9,6 +9,7 @@
 #include <iterator>
 #include <iomanip>      // std::setw
 #include <xmmintrin.h>
+#include <functional>
 #include "geometry.h"
 
 
@@ -75,6 +76,8 @@ public:
 
 	/** Inserts col to matrix */
 	void insert_col(t* colv, int colh);
+
+	void for_each(std::function<t(const t&)> callback);
 
 	/**
 	* Outputs matrix
@@ -170,7 +173,7 @@ public:
 	* Implementation of 2d array [][] operator.
 	* Returns matrix element
 	*/
-	inline t& operator () (unsigned int i1, unsigned int i2) ;
+	inline t& operator () (unsigned int i1, unsigned int i2);
 };
 
 template <class t> std::ostream& operator <<(std::ostream& s, Matrix<t>& m);
@@ -182,12 +185,11 @@ typedef Matrix<Vec3i> Matv3i;
 typedef Matrix<Vec2f> Matv2f;
 typedef Matrix<Vec3f> Matv3f;
 
-
 template<class t>
 class SquareMatrix : public Matrix<t> {
 protected:
 	// Getters
-	// Repalce width and height getters with single side getter
+	// Replace width and height getters with single side getter
 	inline unsigned int g_w() = delete;
 	inline unsigned int g_h() = delete;
 	/** Gets matrix side */
@@ -204,13 +206,15 @@ public:
 	SquareMatrix(unsigned int _s, std::vector<t>* _v, bool _transpose = false) : Matrix<t>(_s, _s, _v, _transpose) {};
 
 
-	double determinant() {
+	/** Implementation of the Bareiss algorithm
+	*	Copied from https://cs.nyu.edu/exact/core/download/core_v1.4/core_v1.4/progs/bareiss/bareiss.cpp
+	*/
+	long double determinant() {
 		Matrix<t> A = *this;
 		double det;
 		unsigned int i, j, k;
 
 		for (i = 0; i < g_s() - 1; i++) {
-			// assert(a(i, i) == 0);
 			for (j = i + 1; j < g_s(); j++)
 				for (k = i + 1; k < g_s(); k++) {
 					A(j, k) = (A(j, k) * A(i, i) - A(j, i) * A(i, k));
