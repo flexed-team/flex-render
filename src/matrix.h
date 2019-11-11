@@ -376,11 +376,11 @@ public:
 	Vector3(std::vector<t>* _v, bool _transpose = false);
 
 	/** Gets x */
-	inline unsigned int g_x() const { return (*this)(0); }
+	inline unsigned int g_x() const { return Vector<t>::g_v()[0]; }
 	/** Gets y */
-	inline unsigned int g_y() const { return (*this)(1); }
+	inline unsigned int g_y() const { return Vector<t>::g_v()[1]; }
 	/** Gets additional coordinate in homogenous space */
-	inline unsigned int g_a() const { return (*this)(2); }
+	inline unsigned int g_a() const { return Vector<t>::g_v()[2]; }
 
 	//TODO: ^ operator
 	/** Scalar mult */
@@ -413,14 +413,14 @@ public:
 	Vector4(std::vector<t>* _v, bool _transpose = false);
 
 	/** Gets x */
-	inline unsigned int g_x() const { return (*this)(0); }
+	inline unsigned int g_x() const { return Vector<t>::g_v()[0]; }
 	/** Gets y */
-	inline unsigned int g_y() const { return (*this)(1); }	
+	inline unsigned int g_y() const { return Vector<t>::g_v()[1]; }
 	/** Gets z */
-	inline unsigned int g_z() const { return (*this)(2); }
+	inline unsigned int g_z() const { return Vector<t>::g_v()[2]; }
 	/** Gets additional coordinate in homogenous space */
-	inline unsigned int g_a() const { return (*this)(3); }
-	
+	inline unsigned int g_a() const { return Vector<t>::g_v()[3]; }
+
 
 	//TODO: ^ operator
 	/** Scalar mult */
