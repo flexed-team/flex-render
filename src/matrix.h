@@ -63,7 +63,7 @@ public:
 	Matrix(const Matrix<t>& m);
 
 	/** Skeleton constructor from array pointer */
-	Matrix(const Matrix<t>& m, t* _v);
+	Matrix(const Matrix<t>& m, t _v[]);
 	/** Skeleton constructor from vector */
 	Matrix(const Matrix<t>& m, std::vector<t> _v);
 	/** Skeleton constructor from vector pointer */
@@ -72,7 +72,7 @@ public:
 	/** Default value constructor(zero) */
 	Matrix(unsigned _w, unsigned _h, t _defv, bool _transposed = false);
 	/** From array pointer */
-	Matrix(unsigned _w, unsigned _h, t* _v, bool _transposed = false);
+	Matrix(unsigned _w, unsigned _h, t _v[], bool _transposed = false);
 	/** From vector */
 	Matrix(unsigned _w, unsigned _h, std::vector<t> _v, bool _transposed = false);
 	/** From vector pointer */
@@ -96,9 +96,9 @@ public:
 	inline void transpose() { transposed = !transposed; }
 
 	/** Inserts row to matrix */
-	virtual void insert_row(t* rowv, int roww);
+	virtual void insert_row(t* rowv, unsigned roww);
 	/** Inserts col to matrix */
-	virtual void insert_col(t* colv, int colh);
+	virtual void insert_col(t* colv, unsigned colh);
 
 	/** Applies function for every element of matrix array */
 	void for_each(std::function<void(t&)> callback);
@@ -112,57 +112,39 @@ public:
 	// + + + + + + + + + + + + + + + + + + + 
 	Matrix<t> operator +(int o);
 	Matrix<t> operator +(float o);
-	Matrix<t> operator +(Matrix<t> o);
-	Matrix<t> operator +(Matrix<t>& o);
+	Matrix<t> operator +(const Matrix<t>& o);
 
 	// - - - - - - - - - - - - - - - - 
 	/** Unary minus */
 	Matrix<t> operator -();
 	Matrix<t> operator -(int o);
 	Matrix<t> operator -(float o);
-	Matrix<t> operator -(Matrix<t> o);
-	Matrix<t> operator -(Matrix<t>& o);
+	Matrix<t> operator -(const Matrix<t>& o);
 
 	// * * * * * * * * * * * * * * * * * 
 	Matrix<t> operator *(int o);
 	Matrix<t> operator *(float o);
 	/** Perfmorms matrix multiplication */
-	Matrix<t> operator *(Matrix<t> o);
+	//Matrix<t> operator *(Matrix<t> o);
 	/** Perfmorms matrix multiplication */
 	Matrix<t> operator *(Matrix<t>& o);
 
 	/** Perfmorms multiplication of matrix on 2d vector
 	*	Matrix has to be width 2 and height at least 2 (all after 2nd row will be ignored)
 	*/
-	Vec2i operator *(Vec2i o);
+	Vec2i operator *(const Vec2i& o) const;
 	/** Perfmorms multiplication of matrix on 2d vector
 	*	Matrix has to be width 2 and height at least 2 (all after 2nd row will be ignored)
 	*/
-	Vec2i operator *(Vec2i& o) const;
-	/** Perfmorms multiplication of matrix on 2d vector
-	*	Matrix has to be width 2 and height at least 2 (all after 2nd row will be ignored)
-	*/
-	Vec2f operator *(Vec2f o);
-	/** Perfmorms multiplication of matrix on 2d vector
-	*	Matrix has to be width 2 and height at least 2 (all after 2nd row will be ignored)
-	*/
-	Vec2f operator *(Vec2f& o) const;
+	Vec2f operator *(const Vec2f& o) const;
 	/** Perfmorms multiplication of matrix on 3d vector
 	*	Matrix has to be width 3 and height at least 3 (all after 3nd row will be ignored)
 	*/
-	Vec3i operator *(Vec3i o);
+	Vec3i operator *(const Vec3i& o) const;
 	/** Perfmorms multiplication of matrix on 3d vector
 	*	Matrix has to be width 3 and height at least 3 (all after 3nd row will be ignored)
 	*/
-	Vec3i operator *(Vec3i& o) const;
-	/** Perfmorms multiplication of matrix on 3d vector
-	*	Matrix has to be width 3 and height at least 3 (all after 3nd row will be ignored)
-	*/
-	Vec3f operator *(Vec3f o);
-	/** Perfmorms multiplication of matrix on 3d vector
-	*	Matrix has to be width 3 and height at least 3 (all after 3nd row will be ignored)
-	*/
-	Vec3f operator *(Vec3f& o) const;
+	Vec3f operator *(const Vec3f& o) const;
 
 	// / / / / / / / / / / / / / / / / / / / / / / / / 
 	Matrix<t> operator /(int o);
@@ -173,27 +155,25 @@ public:
 	// == == == == == == == == == == == ==
 	bool operator ==(int o);
 	bool operator ==(float o);
-	bool operator ==(Matrix<t> o);
-	bool operator ==(Matrix<t>& o);
+	bool operator ==(const Matrix<t>& o);
 
 	// != != != != != != != != != != != != != 
 	bool operator !=(int o);
 	bool operator !=(float o);
-	bool operator !=(Matrix<t> o);
-	bool operator !=(Matrix<t>& o);
+	bool operator !=(const Matrix<t>& o);
 
 	// += += += += += += += += += += += += += 
 	Matrix<t>& operator +=(int o);
 	Matrix<t>& operator +=(float o);
-	Matrix<t>& operator +=(Matrix<t>& o);
+	Matrix<t>& operator +=(const Matrix<t>& o);
 	// -= -= -= -= -= -= -= -= -= -= -= -= -= 
 	Matrix<t>& operator -=(int o);
 	Matrix<t>& operator -=(float o);
-	Matrix<t>& operator -=(Matrix<t>& o);
+	Matrix<t>& operator -=(const Matrix<t>& o);
 	// *= *= *= *= *= *= *= *= *= *= *= *= *= 
 	Matrix<t>& operator *=(int o);
 	Matrix<t>& operator *=(float o);
-	Matrix<t>& operator *=(Matrix<t>& o);
+	Matrix<t>& operator *=(const Matrix<t>& o);
 	// /= /= /= /= /= /= /= /= /= /= /= /= 
 	Matrix<t>& operator /=(int o);
 	Matrix<t>& operator /=(float o);
@@ -209,7 +189,7 @@ public:
 	Matrix<t> operator --(int);// Postfix increment ope rator.
 
 	/// << << << << << << << << <<
-	template <class> friend std::ostream& operator<<(std::ostream& s, Matrix<t>& m);
+	template <class> friend std::ostream& operator<<(std::ostream& s, const Matrix<t>& m);
 
 	/**
 	* Implementation of 2d array [] operator.
@@ -222,6 +202,7 @@ public:
 	* This one returns the actual element from values array
 	*/
 	inline t& operator ()(unsigned i);
+
 	/**
 	* Implementation of 2d array [][] operator.
 	* Returns matrix element
@@ -229,14 +210,7 @@ public:
 	inline t& operator () (unsigned i1, unsigned i2);
 };
 
-template <class t> std::ostream& operator <<(std::ostream& s, Matrix<t>& m);
-
-typedef Matrix<int> Mati;
-typedef Matrix<float> Matf;
-typedef Matrix<Vec2i> Matv2i;
-typedef Matrix<Vec3i> Matv3i;
-typedef Matrix<Vec2f> Matv2f;
-typedef Matrix<Vec3f> Matv3f;
+template <class t> std::ostream& operator <<(std::ostream& s, const Matrix<t>& m);
 
 template<class t>
 class SquareMatrix : public Matrix<t> {
@@ -245,16 +219,16 @@ public:
 	SquareMatrix(const Matrix<t>& m);
 
 	/** Skeleton constructor from array pointer */
-	SquareMatrix(const SquareMatrix<t>& m, t* _v);
+	SquareMatrix(const Matrix<t>& m, t _v[]);
 	/** Skeleton constructor from vector */
-	SquareMatrix(const SquareMatrix<t>& m, std::vector<t> _v);
+	SquareMatrix(const Matrix<t>& m, std::vector<t> _v);
 	/** Skeleton constructor from vector pointer */
-	SquareMatrix(const SquareMatrix<t>& m, std::vector<t>* _v);
+	SquareMatrix(const Matrix<t>& m, std::vector<t>* _v);
 
 	/** Default value constructor(zero) */
 	SquareMatrix(unsigned _s, bool _transpose = false);
 	/** From array pointer */
-	SquareMatrix(unsigned _s, t* _v, bool _transpose = false);
+	SquareMatrix(unsigned _s, t _v[], bool _transpose = false);
 	/** From vector */
 	SquareMatrix(unsigned _s, std::vector<t> _v, bool _transpose = false);
 	/** From vector pointer */
@@ -299,5 +273,166 @@ public:
 		}
 	}
 };
+
+
+
+
+template<class t>
+class Matrix3 : public SquareMatrix<t>
+{
+public:
+	/** Copy constructor */
+	Matrix3(const Matrix<t>& m);
+
+	/** Skeleton constructor from array pointer */
+	Matrix3(const Matrix<t>& m, t _v[9]);
+	/** Skeleton constructor from vector */
+	Matrix3(const Matrix<t>& m, std::vector<t> _v);
+	/** Skeleton constructor from vector pointer */
+	Matrix3(const Matrix<t>& m, std::vector<t>* _v);
+
+	/** Default value constructor(zero) */
+	Matrix3(bool _transpose = false);
+	/** From array pointer */
+	Matrix3(t _v[9], bool _transpose = false);
+	/** From vector */
+	Matrix3(std::vector<t> _v, bool _transpose = false);
+	/** From vector pointer */
+	Matrix3(std::vector<t>* _v, bool _transpose = false);
+};
+
+template<class t>
+class Matrix4 : public SquareMatrix<t>
+{
+public:
+	/** Copy constructor */
+	Matrix4(const Matrix<t>& m);
+
+	/** Skeleton constructor from array pointer */
+	Matrix4(const Matrix<t>& m, t _v[16]);
+	/** Skeleton constructor from vector */
+	Matrix4(const Matrix<t>& m, std::vector<t> _v);
+	/** Skeleton constructor from vector pointer */
+	Matrix4(const Matrix<t>& m, std::vector<t>* _v);
+
+	/** Default value constructor(zero) */
+	Matrix4(bool _transpose = false);
+	/** From array pointer */
+	Matrix4(t _v[16], bool _transpose = false);
+	/** From vector */
+	Matrix4(std::vector<t> _v, bool _transpose = false);
+	/** From vector pointer */
+	Matrix4(std::vector<t>* _v, bool _transpose = false);
+};
+
+
+// Vector implementation based on matrices
+template<class t>
+class Vector : public Matrix<t>
+{
+public:
+	/** Copy constructor */
+	Vector(const Matrix<t>& v);
+
+	/** Skeleton constructor from array pointer */
+	Vector(const Matrix<t>& v, t _v[]);
+	/** Skeleton constructor from vector */
+	Vector(const Matrix<t>& v, std::vector<t> _v);
+	/** Skeleton constructor from vector pointer */
+	Vector(const Matrix<t>& v, std::vector<t>* _v);
+
+	/** Default value constructor(zero) */
+	Vector(unsigned _dim, bool _transpose = false);
+	/** From array pointer */
+	Vector(unsigned _dim, t _v[], bool _transpose = false);
+	/** From vector */
+	Vector(unsigned _dim, std::vector<t> _v, bool _transpose = false);
+	/** From vector pointer */
+	Vector(unsigned _dim, std::vector<t>* _v, bool _transpose = false);
+};
+
+// Vector implementation based on matrices
+template<class t>
+class Vector3 : public Vector<t>
+{
+public:
+	/** Copy constructor */
+	Vector3(const Matrix<t>& v);
+
+	/** Skeleton constructor from array pointer */
+	Vector3(const Matrix<t>& v, t _v[3]);
+	/** Skeleton constructor from vector */
+	Vector3(const Matrix<t>& v, std::vector<t> _v);
+	/** Skeleton constructor from vector pointer */
+	Vector3(const Matrix<t>& v, std::vector<t>* _v);
+
+	/** Default value constructor(zero) */
+	Vector3(bool _transpose = false);
+	/** From array pointer */
+	Vector3(t _v[3], bool _transpose = false);
+	/** From vector */
+	Vector3(std::vector<t> _v, bool _transpose = false);
+	/** From vector pointer */
+	Vector3(std::vector<t>* _v, bool _transpose = false);
+
+	/** Gets x */
+	inline unsigned int g_x() const { return (*this)(0); }
+	/** Gets y */
+	inline unsigned int g_y() const { return (*this)(1); }
+	/** Gets additional coordinate in homogenous space */
+	inline unsigned int g_a() const { return (*this)(2); }
+
+	//TODO: ^ operator
+	/** Scalar mult */
+	inline t operator %(const Vector3<t>& v) const { return g_x() * v.g_x() + g_y() * v.g_y() + g_a() * v.g_a(); } // Scalar mult
+	//inline t operator %=(const Vector3<t>& v) const { return g_x() * v.g_x() + g_y() * v.g_y() + g_a() * v.g_a(); } // Scalar mult
+};
+
+// Vector implementation based on matrices
+template<class t>
+class Vector4 : public Vector<t>
+{
+public:
+	/** Copy constructor */
+	Vector4(const Matrix<t>& m);
+
+	/** Skeleton constructor from array pointer */
+	Vector4(const Matrix<t>& m, t _v[4]);
+	/** Skeleton constructor from vector */
+	Vector4(const Matrix<t>& m, std::vector<t> _v);
+	/** Skeleton constructor from vector pointer */
+	Vector4(const Matrix<t>& m, std::vector<t>* _v);
+
+	/** Default value constructor(zero) */
+	Vector4(bool _transpose = false);
+	/** From array pointer */
+	Vector4(t _v[4], bool _transpose = false);
+	/** From vector */
+	Vector4(std::vector<t> _v, bool _transpose = false);
+	/** From vector pointer */
+	Vector4(std::vector<t>* _v, bool _transpose = false);
+
+	/** Gets x */
+	inline unsigned int g_x() const { return (*this)(0); }
+	/** Gets y */
+	inline unsigned int g_y() const { return (*this)(1); }	
+	/** Gets z */
+	inline unsigned int g_z() const { return (*this)(2); }
+	/** Gets additional coordinate in homogenous space */
+	inline unsigned int g_a() const { return (*this)(3); }
+	
+
+	//TODO: ^ operator
+	/** Scalar mult */
+	inline t operator %(const Vector4<t>& v) const { return g_x() * v.g_x() + g_y() * v.g_y() + g_z() * v.g_z() + g_a() * v.g_a(); } // Scalar mult
+	//inline t operator %=(const Vector4<t>& v) const { v. g_x() * v.g_x() + g_y() * v.g_y() + g_z() * v.g_z() + g_a() * v.g_a(); } // Scalar mult
+};
+
+
+// Typedefs
+
+typedef Matrix<int> Mati;
+typedef Matrix<float> Matf;
+
 
 #endif //__MATRIX_H__
