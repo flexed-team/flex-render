@@ -1,15 +1,43 @@
 #include "matrix.h"
 #include "geometry.h"
 
-template<class t> Matrix<t>::Matrix(const Matrix<t>& m) : w(m.w), h(m.h), v(m.v.begin(), m.v.end()), transposed(m.transposed) {}
-template<class t> Matrix<t>::Matrix(const Matrix<t>& m, t _v[]) : w(m.w), h(m.h), v(_v, _v + m.w * m.h), transposed(m.transposed) {}
-template<class t> Matrix<t>::Matrix(const Matrix<t>& m, std::vector<t> _v) : w(m.w), h(m.h), v(_v.begin(), _v.end()), transposed(m.transposed) {}
-template<class t> Matrix<t>::Matrix(const Matrix<t>& m, std::vector<t>* _v) : w(m.w), h(m.h), v(_v->begin(), _v->end()), transposed(m.transposed) {}
+template<class t> Matrix<t>::~Matrix() {
+	delete v;
+}
 
-template<class t> Matrix<t>::Matrix(unsigned _w, unsigned _h, t _defv, bool _transposed) : w(_w), h(_h), v(_w* _h, _defv), transposed(_transposed) {}
-template<class t> Matrix<t>::Matrix(unsigned _w, unsigned _h, t _v[], bool _transposed) : w(_w), h(_h), v(_v, _v + _w * _h), transposed(_transposed) {};
-template<class t> Matrix<t>::Matrix(unsigned _w, unsigned _h, std::vector<t> _v, bool _transposed) : w(_w), h(_h), v(_v.begin(), _v.end()), transposed(_transposed) {}
-template<class t> Matrix<t>::Matrix(unsigned _w, unsigned _h, std::vector<t>* _v, bool _transposed) : w(_w), h(_h), v(_v->begin(), _v->end()), transposed(_transposed) {}
+template<class t> Matrix<t>::Matrix(const Matrix<t>& m) : w(m.w), h(m.h), transposed(m.transposed) {
+	for (unsigned i = 0; i < m.g_length(); i++)
+		v[i] = m.g_v()[i];
+}
+template<class t> Matrix<t>::Matrix(const Matrix<t>& m, t _v[]) : w(m.w), h(m.h), transposed(m.transposed) {
+	for (unsigned i = 0; i < m.g_length(); i++)
+		v[i] = _v[i];
+}
+template<class t> Matrix<t>::Matrix(const Matrix<t>& m, std::vector<t>& _v) : w(m.w), h(m.h), transposed(m.transposed) {
+	std::copy(_v.begin(), _v.end(), v);
+}
+template<class t> Matrix<t>::Matrix(const Matrix<t>& m, std::vector<t>* _v) : w(m.w), h(m.h), transposed(m.transposed) {
+	std::copy(_v->begin(), _v->end(), v);
+}
+
+template<class t> Matrix<t>::Matrix(unsigned _w, unsigned _h, t _defv, bool _transposed) : w(_w), h(_h), transposed(_transposed) {
+	v = new t[_w * _h];
+	for (unsigned i = 0; i < _w * _h; i++)
+		v[i] = _defv;
+}
+template<class t> Matrix<t>::Matrix(unsigned _w, unsigned _h, t _v[], bool _transposed) : w(_w), h(_h), transposed(_transposed) {
+	v = new t[_w * _h];
+	for (unsigned i = 0; i < _w * _h; i++)
+		v[i] = _v[i];
+};
+template<class t> Matrix<t>::Matrix(unsigned _w, unsigned _h, std::vector<t>& _v, bool _transposed) : w(_w), h(_h), transposed(_transposed) {
+	v = new t[_w * _h];
+	std::copy(_v.begin(), _v.end(), v);
+}
+template<class t> Matrix<t>::Matrix(unsigned _w, unsigned _h, std::vector<t>* _v, bool _transposed) : w(_w), h(_h), transposed(_transposed) {
+	v = new t[_w * _h];
+	std::copy(_v->begin(), _v->end(), v);
+}
 
 
 template<class t> void Matrix<t>::check_sizes(Matrix<t>& m) const
@@ -33,9 +61,16 @@ template<class t> void Matrix<t>::log()
 template<class t> void Matrix<t>::insert_row(t* rowv, unsigned roww)
 {
 	assert(g_w() == roww && "Inappropriate row size");
-	const unsigned add = g_length();
-	for (unsigned i = 0; i < g_w(); i++)
-		v.push_back(rowv[i]);
+
+	const unsigned offset = g_length();
+
+	t* newv = new t[offset + roww];
+	memcpy(newv, v, offset * sizeof(t));
+	delete[] v;
+	v = newv;
+
+	for (unsigned i = 0; i < roww; i++)
+		v[offset + i] = rowv[i];
 
 	s_ih();
 }
@@ -44,9 +79,20 @@ template<class t> void Matrix<t>::insert_col(t* colv, unsigned colh)
 {
 	assert(g_h() == colh && "Inappropriate col size");
 	s_iw();
-	const unsigned add = g_w() - 1;
-	for (int i = 0; i < add; i++)
-		v.insert(v.begin() + add + i * g_w(), colv[i]);
+
+	const unsigned new_length = g_length() + colh;
+	t* newv = new t[new_length];
+
+	int c = 0;
+	for (int i = 0; i < new_length; i++)
+		if (i % g_w() == g_w() - 1) {
+			newv[i] = colv[c];
+			c++;
+		}
+		else newv[i] = v[i - c];
+
+	delete[] v;
+	v = newv;
 }
 
 template<class t> void Matrix<t>::for_each(std::function<void(t&)> callback)
@@ -368,13 +414,13 @@ template <class t> std::ostream& operator <<(std::ostream& s, const Matrix<t>& m
 template<class t> SquareMatrix<t>::SquareMatrix(const Matrix<t>& m) : Matrix<t>(m) {}
 
 template<class t> SquareMatrix<t>::SquareMatrix(const Matrix<t>& m, t _v[]) : Matrix<t>(m, _v) {}
-template<class t> SquareMatrix<t>::SquareMatrix(const Matrix<t>& m, std::vector<t> _v) : Matrix<t>(m, _v) {}
+template<class t> SquareMatrix<t>::SquareMatrix(const Matrix<t>& m, std::vector<t>& _v) : Matrix<t>(m, _v) {}
 template<class t> SquareMatrix<t>::SquareMatrix(const Matrix<t>& m, std::vector<t>* _v) : Matrix<t>(m, _v) {}
 
 
-template<class t> SquareMatrix<t>::SquareMatrix(unsigned _s, bool _transpose) : Matrix<t>(_s, _s, _transpose) {};
+template<class t> SquareMatrix<t>::SquareMatrix(unsigned _s, t _defv, bool _transpose) : Matrix<t>(_s, _s, _defv, _transpose) {};
 template<class t> SquareMatrix<t>::SquareMatrix(unsigned _s, t _v[], bool _transpose) : Matrix<t>(_s, _s, _v, _transpose) {};
-template<class t> SquareMatrix<t>::SquareMatrix(unsigned _s, std::vector<t> _v, bool _transpose) : Matrix<t>(_s, _s, _v, _transpose) {};
+template<class t> SquareMatrix<t>::SquareMatrix(unsigned _s, std::vector<t>& _v, bool _transpose) : Matrix<t>(_s, _s, _v, _transpose) {};
 template<class t> SquareMatrix<t>::SquareMatrix(unsigned _s, std::vector<t>* _v, bool _transpose) : Matrix<t>(_s, _s, _v, _transpose) {};
 
 
@@ -432,12 +478,12 @@ template<class t> SquareMatrix<t> SquareMatrix<t>::inverse() {
 template<class t> Matrix3<t>::Matrix3(const Matrix<t>& m) : SquareMatrix<t>(m) {}
 
 template<class t> Matrix3<t>::Matrix3(const Matrix<t>& m, t _v[9]) : SquareMatrix<t>(m, _v) {}
-template<class t> Matrix3<t>::Matrix3(const Matrix<t>& m, std::vector<t> _v) : SquareMatrix<t>(m, _v) {}
+template<class t> Matrix3<t>::Matrix3(const Matrix<t>& m, std::vector<t>& _v) : SquareMatrix<t>(m, _v) {}
 template<class t> Matrix3<t>::Matrix3(const Matrix<t>& m, std::vector<t>* _v) : SquareMatrix<t>(m, _v) {}
 
-template<class t> Matrix3<t>::Matrix3(bool _transpose) : SquareMatrix<t>(3, _transpose) {};
+template<class t> Matrix3<t>::Matrix3(t _defv, bool _transpose) : SquareMatrix<t>(3, _defv, _transpose) {};
 template<class t> Matrix3<t>::Matrix3(t _v[9], bool _transpose) : SquareMatrix<t>(3, _v, _transpose) {};
-template<class t> Matrix3<t>::Matrix3(std::vector<t> _v, bool _transpose) : SquareMatrix<t>(3, _v, _transpose) {};
+template<class t> Matrix3<t>::Matrix3(std::vector<t>& _v, bool _transpose) : SquareMatrix<t>(3, _v, _transpose) {};
 template<class t> Matrix3<t>::Matrix3(std::vector<t>* _v, bool _transpose) : SquareMatrix<t>(3, _v, _transpose) {};
 
 
@@ -445,48 +491,48 @@ template<class t> Matrix3<t>::Matrix3(std::vector<t>* _v, bool _transpose) : Squ
 template<class t> Matrix4<t>::Matrix4(const Matrix<t>& m) : SquareMatrix<t>(m) {}
 
 template<class t> Matrix4<t>::Matrix4(const Matrix<t>& m, t _v[16]) : SquareMatrix<t>(m, _v) {}
-template<class t> Matrix4<t>::Matrix4(const Matrix<t>& m, std::vector<t> _v) : SquareMatrix<t>(m, _v) {}
+template<class t> Matrix4<t>::Matrix4(const Matrix<t>& m, std::vector<t>& _v) : SquareMatrix<t>(m, _v) {}
 template<class t> Matrix4<t>::Matrix4(const Matrix<t>& m, std::vector<t>* _v) : SquareMatrix<t>(m, _v) {}
 
-template<class t> Matrix4<t>::Matrix4(bool _transpose) : SquareMatrix<t>(4, _transpose) {};
+template<class t> Matrix4<t>::Matrix4(t _defv, bool _transpose) : SquareMatrix<t>(4, _defv, _transpose) {};
 template<class t> Matrix4<t>::Matrix4(t _v[16], bool _transpose) : SquareMatrix<t>(4, _v, _transpose) {};
-template<class t> Matrix4<t>::Matrix4(std::vector<t> _v, bool _transpose) : SquareMatrix<t>(4, _v, _transpose) {};
+template<class t> Matrix4<t>::Matrix4(std::vector<t>& _v, bool _transpose) : SquareMatrix<t>(4, _v, _transpose) {};
 template<class t> Matrix4<t>::Matrix4(std::vector<t>* _v, bool _transpose) : SquareMatrix<t>(4, _v, _transpose) {};
 
 
 
 
-template<class t> Vector<t>::Vector(const Matrix<t>& m) : Matrix<t>(m) {}
+// template<class t> Vector<t>::Vector(const Matrix<t>& m) : Matrix<t>(m) {}
 
-template<class t> Vector<t>::Vector(const Matrix<t>& m, t _v[]) : Matrix<t>(m, _v) {}
-template<class t> Vector<t>::Vector(const Matrix<t>& m, std::vector<t> _v) : Matrix<t>(m, _v) {}
-template<class t> Vector<t>::Vector(const Matrix<t>& m, std::vector<t>* _v) : Matrix<t>(m, _v) {}
+// template<class t> Vector<t>::Vector(const Matrix<t>& m, t _v[]) : Matrix<t>(m, _v) {}
+// template<class t> Vector<t>::Vector(const Matrix<t>& m, std::vector<t> _v) : Matrix<t>(m, _v) {}
+// template<class t> Vector<t>::Vector(const Matrix<t>& m, std::vector<t>* _v) : Matrix<t>(m, _v) {}
 
-template<class t> Vector<t>::Vector(unsigned _dim, bool _transpose) : Matrix<t>(1, _dim, _transpose) {};
-template<class t> Vector<t>::Vector(unsigned _dim, t _v[], bool _transpose) : Matrix<t>(1, _dim, _v, _transpose) {};
-template<class t> Vector<t>::Vector(unsigned _dim, std::vector<t> _v, bool _transpose) : Matrix<t>(1, _dim, _v, _transpose) {};
-template<class t> Vector<t>::Vector(unsigned _dim, std::vector<t>* _v, bool _transpose) : Matrix<t>(1, _dim, _v, _transpose) {};
-
-
-template<class t> Vector3<t>::Vector3(const Matrix<t>& m) : Vector<t>(m) {}
-
-template<class t> Vector3<t>::Vector3(const Matrix<t>& m, t _v[3]) : Vector<t>(m, _v) {}
-template<class t> Vector3<t>::Vector3(const Matrix<t>& m, std::vector<t> _v) : Vector<t>(m, _v) {}
-template<class t> Vector3<t>::Vector3(const Matrix<t>& m, std::vector<t>* _v) : Vector<t>(m, _v) {}
-
-template<class t> Vector3<t>::Vector3(bool _transpose) : Vector<t>(3, _transpose) {};
-template<class t> Vector3<t>::Vector3(t _v[3], bool _transpose) : Vector<t>(3, _v, _transpose) {};
-template<class t> Vector3<t>::Vector3(std::vector<t> _v, bool _transpose) : Vector<t>(3, _v, _transpose) {};
-template<class t> Vector3<t>::Vector3(std::vector<t>* _v, bool _transpose) : Vector<t>(3, _v, _transpose) {};
+// template<class t> Vector<t>::Vector(unsigned _dim, bool _transpose) : Matrix<t>(1, _dim, _transpose) {};
+// template<class t> Vector<t>::Vector(unsigned _dim, t _v[], bool _transpose) : Matrix<t>(1, _dim, _v, _transpose) {};
+// template<class t> Vector<t>::Vector(unsigned _dim, std::vector<t> _v, bool _transpose) : Matrix<t>(1, _dim, _v, _transpose) {};
+// template<class t> Vector<t>::Vector(unsigned _dim, std::vector<t>* _v, bool _transpose) : Matrix<t>(1, _dim, _v, _transpose) {};
 
 
-template<class t> Vector4<t>::Vector4(const Matrix<t>& m) : Vector<t>(m) {}
+// template<class t> Vector3<t>::Vector3(const Matrix<t>& m) : Vector<t>(m) {}
 
-template<class t> Vector4<t>::Vector4(const Matrix<t>& m, t _v[4]) : Vector<t>(m, _v) {}
-template<class t> Vector4<t>::Vector4(const Matrix<t>& m, std::vector<t> _v) : Vector<t>(m, _v) {}
-template<class t> Vector4<t>::Vector4(const Matrix<t>& m, std::vector<t>* _v) : Vector<t>(m, _v) {}
+// template<class t> Vector3<t>::Vector3(const Matrix<t>& m, t _v[3]) : Vector<t>(m, _v) {}
+// template<class t> Vector3<t>::Vector3(const Matrix<t>& m, std::vector<t> _v) : Vector<t>(m, _v) {}
+// template<class t> Vector3<t>::Vector3(const Matrix<t>& m, std::vector<t>* _v) : Vector<t>(m, _v) {}
 
-template<class t> Vector4<t>::Vector4(bool _transpose) : Vector<t>(4, _transpose) {};
-template<class t> Vector4<t>::Vector4(t _v[4], bool _transpose) : Vector<t>(4, _v, _transpose) {};
-template<class t> Vector4<t>::Vector4(std::vector<t> _v, bool _transpose) : Vector<t>(4, _v, _transpose) {};
-template<class t> Vector4<t>::Vector4(std::vector<t>* _v, bool _transpose) : Vector<t>(4, _v, _transpose) {};
+// template<class t> Vector3<t>::Vector3(bool _transpose) : Vector<t>(3, _transpose) {};
+// template<class t> Vector3<t>::Vector3(t _v[3], bool _transpose) : Vector<t>(3, _v, _transpose) {};
+// template<class t> Vector3<t>::Vector3(std::vector<t> _v, bool _transpose) : Vector<t>(3, _v, _transpose) {};
+// template<class t> Vector3<t>::Vector3(std::vector<t>* _v, bool _transpose) : Vector<t>(3, _v, _transpose) {};
+
+
+// template<class t> Vector4<t>::Vector4(const Matrix<t>& m) : Vector<t>(m) {}
+
+// template<class t> Vector4<t>::Vector4(const Matrix<t>& m, t _v[4]) : Vector<t>(m, _v) {}
+// template<class t> Vector4<t>::Vector4(const Matrix<t>& m, std::vector<t> _v) : Vector<t>(m, _v) {}
+// template<class t> Vector4<t>::Vector4(const Matrix<t>& m, std::vector<t>* _v) : Vector<t>(m, _v) {}
+
+// template<class t> Vector4<t>::Vector4(bool _transpose) : Vector<t>(4, _transpose) {};
+// template<class t> Vector4<t>::Vector4(t _v[4], bool _transpose) : Vector<t>(4, _v, _transpose) {};
+// template<class t> Vector4<t>::Vector4(std::vector<t> _v, bool _transpose) : Vector<t>(4, _v, _transpose) {};
+// template<class t> Vector4<t>::Vector4(std::vector<t>* _v, bool _transpose) : Vector<t>(4, _v, _transpose) {};
