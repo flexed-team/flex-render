@@ -47,9 +47,9 @@ protected:
 
 	// Setters
 	/** Increments matrix width */
-	virtual inline void s_iw() { if (transposed) h++; else w++; }
+	inline void s_iw() { transposed ? h++ : w++; }
 	/** Increments matrix height */
-	virtual inline void s_ih() { if (transposed) w++; else h++; }
+	inline void s_ih() { transposed ? w++ : h++; }
 
 
 	/**
@@ -60,10 +60,10 @@ protected:
 
 public:
 	~Matrix();
+	Matrix();
 
 	/** Copy constructor */
 	Matrix(const Matrix<t>& m);
-	Matrix() :v{} {};
 
 	/** Skeleton constructor from array pointer */
 	Matrix(const Matrix<t>& m, t _v[]);
@@ -73,7 +73,7 @@ public:
 	Matrix(const Matrix<t>& m, std::vector<t>* _v);
 
 	/** Default value constructor(zero) */
-	Matrix(unsigned _w, unsigned _h, t _defv = t(), bool _transposed = false);
+	Matrix(unsigned _w, unsigned _h, t _defv, bool _transposed = false);
 	/** From array pointer */
 	Matrix(unsigned _w, unsigned _h, t _v[], bool _transposed = false);
 	/** From vector */
@@ -86,9 +86,9 @@ public:
 	/** Gets matrix values array size */
 	inline unsigned int g_length() const { return w * h; }
 	/** Gets matrix width */
-	virtual inline unsigned int g_w() const { if (transposed) return h; return w; }
+	inline unsigned int g_w() const { return transposed ? h : w; }
 	/** Gets matrix height */
-	virtual inline unsigned int g_h() const { if (transposed) return w; return h; }
+	inline unsigned int g_h() const { return transposed ? w : h; }
 	/** Gets matrix array */
 	inline t* g_v() const { return v; }
 	/** Gets `transposed` flag */
@@ -218,6 +218,8 @@ template <class t> std::ostream& operator <<(std::ostream& s, const Matrix<t>& m
 template<class t>
 class SquareMatrix : public Matrix<t> {
 public:
+	SquareMatrix();
+
 	/** Copy constructor */
 	SquareMatrix(const Matrix<t>& m);
 
@@ -229,7 +231,7 @@ public:
 	SquareMatrix(const Matrix<t>& m, std::vector<t>* _v);
 
 	/** Default value constructor(zero) */
-	SquareMatrix(unsigned _s, t _defv = t(), bool _transpose = false);
+	SquareMatrix(unsigned _s, t _defv, bool _transpose = false);
 	/** From array pointer */
 	SquareMatrix(unsigned _s, t _v[], bool _transpose = false);
 	/** From vector */
@@ -240,9 +242,6 @@ public:
 	// Getters
 	void insert_row() = delete;
 	void insert_col() = delete;
-	// Replace width and height getters with single side getter
-	inline unsigned g_w() = delete;
-	inline unsigned g_h() = delete;
 	/** Gets matrix side */
 	inline unsigned g_s() const { return Matrix<t>::g_w(); }
 
@@ -272,6 +271,8 @@ template<class t>
 class Matrix3 : public SquareMatrix<t>
 {
 public:
+	Matrix3();
+
 	/** Copy constructor */
 	Matrix3(const Matrix<t>& m);
 
@@ -296,6 +297,8 @@ template<class t>
 class Matrix4 : public SquareMatrix<t>
 {
 public:
+	Matrix4();
+
 	/** Copy constructor */
 	Matrix4(const Matrix<t>& m);
 
@@ -307,7 +310,7 @@ public:
 	Matrix4(const Matrix<t>& m, std::vector<t>* _v);
 
 	/** Default value constructor(zero) */
-	Matrix4(t _defv = t(), bool _transpose = false);
+	Matrix4(t _defv, bool _transpose = false);
 	/** From array pointer */
 	Matrix4(t _v[16], bool _transpose = false);
 	/** From vector */

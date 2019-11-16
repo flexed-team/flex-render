@@ -4,6 +4,7 @@
 template<class t> Matrix<t>::~Matrix() {
 	delete v;
 }
+template<class t> Matrix<t>::Matrix() : v{} {};
 
 template<class t> Matrix<t>::Matrix(const Matrix<t>& m) : w(m.w), h(m.h), transposed(m.transposed) {
 	for (unsigned i = 0; i < m.g_length(); i++)
@@ -397,9 +398,7 @@ template<class t> t& Matrix<t>::operator ()(unsigned i)
 }
 template<class t> t& Matrix<t>::operator ()(unsigned r, unsigned c)
 {
-	if (transposed)
-		return v[c * w + r];
-	return v[r * w + c];
+	return transpose ? v[c * w + r] : v[r * w + c];
 }
 
 template <class t> std::ostream& operator <<(std::ostream& s, const Matrix<t>& m) {
@@ -411,6 +410,7 @@ template <class t> std::ostream& operator <<(std::ostream& s, const Matrix<t>& m
 
 
 
+template<class t> SquareMatrix<t>::SquareMatrix() : Matrix<t>() {};
 template<class t> SquareMatrix<t>::SquareMatrix(const Matrix<t>& m) : Matrix<t>(m) {}
 
 template<class t> SquareMatrix<t>::SquareMatrix(const Matrix<t>& m, t _v[]) : Matrix<t>(m, _v) {}
@@ -475,6 +475,7 @@ template<class t> SquareMatrix<t> SquareMatrix<t>::inverse() {
 
 
 
+template<class t> Matrix3<t>::Matrix3() : SquareMatrix<t>() {}
 template<class t> Matrix3<t>::Matrix3(const Matrix<t>& m) : SquareMatrix<t>(m) {}
 
 template<class t> Matrix3<t>::Matrix3(const Matrix<t>& m, t _v[9]) : SquareMatrix<t>(m, _v) {}
@@ -488,6 +489,7 @@ template<class t> Matrix3<t>::Matrix3(std::vector<t>* _v, bool _transpose) : Squ
 
 
 
+template<class t> Matrix4<t>::Matrix4() : SquareMatrix<t>() {}
 template<class t> Matrix4<t>::Matrix4(const Matrix<t>& m) : SquareMatrix<t>(m) {}
 
 template<class t> Matrix4<t>::Matrix4(const Matrix<t>& m, t _v[16]) : SquareMatrix<t>(m, _v) {}
