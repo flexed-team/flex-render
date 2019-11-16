@@ -90,7 +90,7 @@ public:
 	/** Gets matrix height */
 	inline unsigned g_h() const { return transposed ? w : h; }
 	/** Gets matrix array */
-	inline t& g_v() const { return v; }
+	inline t* g_v() const { return v; }
 	/** Gets `transposed` flag */
 	inline bool g_transposed() const { return transposed; }
 
