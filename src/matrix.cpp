@@ -2,22 +2,26 @@
 #include "geometry.h"
 
 template<class t> Matrix<t>::~Matrix() {
-	delete v;
+	delete[] v;
 }
-template<class t> Matrix<t>::Matrix() : v{} {};
+template<class t> Matrix<t>::Matrix() : v{}, transposed(false) {};
 
 template<class t> Matrix<t>::Matrix(const Matrix<t>& m) : w(m.w), h(m.h), transposed(m.transposed) {
+	v = new t[m.w * m.h];
 	for (unsigned i = 0; i < m.g_length(); i++)
 		v[i] = m.g_v()[i];
 }
 template<class t> Matrix<t>::Matrix(const Matrix<t>& m, t _v[]) : w(m.w), h(m.h), transposed(m.transposed) {
+	v = new t[m.w * m.h];
 	for (unsigned i = 0; i < m.g_length(); i++)
 		v[i] = _v[i];
 }
 template<class t> Matrix<t>::Matrix(const Matrix<t>& m, std::vector<t>& _v) : w(m.w), h(m.h), transposed(m.transposed) {
+	v = new t[m.w * m.h];
 	std::copy(_v.begin(), _v.end(), v);
 }
 template<class t> Matrix<t>::Matrix(const Matrix<t>& m, std::vector<t>* _v) : w(m.w), h(m.h), transposed(m.transposed) {
+	v = new t[m.w * m.h];
 	std::copy(_v->begin(), _v->end(), v);
 }
 
@@ -398,7 +402,9 @@ template<class t> t& Matrix<t>::operator ()(unsigned i)
 }
 template<class t> t& Matrix<t>::operator ()(unsigned r, unsigned c)
 {
-	return transpose ? v[c * w + r] : v[r * w + c];
+	if (transposed)
+		return v[c * w + r];
+	return v[r * w + c];
 }
 
 template <class t> std::ostream& operator <<(std::ostream& s, const Matrix<t>& m) {

@@ -84,13 +84,13 @@ public:
 
 	// Getters
 	/** Gets matrix values array size */
-	inline unsigned int g_length() const { return w * h; }
+	inline unsigned g_length() const { return w * h; }
 	/** Gets matrix width */
-	inline unsigned int g_w() const { return transposed ? h : w; }
+	inline unsigned g_w() const { return transposed ? h : w; }
 	/** Gets matrix height */
-	inline unsigned int g_h() const { return transposed ? w : h; }
+	inline unsigned g_h() const { return transposed ? w : h; }
 	/** Gets matrix array */
-	inline t* g_v() const { return v; }
+	inline t& g_v() const { return v; }
 	/** Gets `transposed` flag */
 	inline bool g_transposed() const { return transposed; }
 
