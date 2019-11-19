@@ -29,8 +29,7 @@ template<class t> Matrix<t>::Matrix(unsigned _w, unsigned _h, bool _t) : width(_
 }
 template<class t> Matrix<t>::Matrix(unsigned _w, unsigned _h, t _defv, bool _t) : width(_w), height(_h), transposed(_t) {
 	v = new t[_w * _h];
-	for (unsigned i = 0; i < _w * _h; i++)
-		v[i] = _defv;
+	std::fill(v, v + _w * _h, _defv);
 }
 template<class t> Matrix<t>::Matrix(unsigned _w, unsigned _h, t _v[], bool _t) : width(_w), height(_h), transposed(_t) {
 	v = new t[_w * _h];
