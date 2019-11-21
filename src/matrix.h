@@ -310,6 +310,13 @@ public:
 	Matrix3(std::vector<t>& _v, bool _t = false);
 	/** From vector pointer */
 	Matrix3(std::vector<t>* _v, bool _t = false);
+	/** Value constructor */
+	Matrix3(
+		t, t, t,
+		t, t, t,
+		t, t, t,
+		bool _t = false
+	);
 };
 
 template<class t>
@@ -336,6 +343,14 @@ public:
 	Matrix4(std::vector<t>& _v, bool _t = false);
 	/** From vector pointer */
 	Matrix4(std::vector<t>* _v, bool _t = false);
+	/** Value constructor */
+	Matrix4(
+		t, t, t, t,
+		t, t, t, t,
+		t, t, t, t,
+		t, t, t, t,
+		bool _t = false
+	);
 };
 
 // Typedefs

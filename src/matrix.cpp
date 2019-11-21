@@ -88,7 +88,7 @@ template<class t> void Matrix<t>::insert_col(t* col_values, unsigned col_height)
 	t* _v = new t[new_length];
 
 	int c = 0;
-	for (int i = 0; i < new_length; i++)
+	for (unsigned i = 0; i < new_length; i++)
 		if (i % g_w() == g_w() - 1) {
 			_v[i] = col_values[c];
 			c++;
@@ -113,7 +113,7 @@ template<class t> Matrix<t>& Matrix<t>::operator =(const Matrix<t>& o) {
 
 	delete[] v;
 	v = new t[o.g_length()];
-	std::copy(o.м, o.м + o.g_length(), v);
+	std::copy(o.v, o.v + o.g_length(), v);
 
 	return *this;
 }
@@ -539,7 +539,26 @@ template<class t> Matrix3<t>::Matrix3(t _defv, bool _t) : SquareMatrix<t>(3, _de
 template<class t> Matrix3<t>::Matrix3(t _v[9], bool _t) : SquareMatrix<t>(3, _v, _t) {};
 template<class t> Matrix3<t>::Matrix3(std::vector<t>& _v, bool _t) : SquareMatrix<t>(3, _v, _t) {};
 template<class t> Matrix3<t>::Matrix3(std::vector<t>* _v, bool _t) : SquareMatrix<t>(3, _v, _t) {};
-
+template<class t> Matrix3<t>::Matrix3(
+	t e0, t e1, t e2,
+	t e3, t e4, t e5,
+	t e6, t e7, t e8,
+	bool _t
+) {
+	SquareMatrix<t>::width = 3;
+	SquareMatrix<t>::height = 3;
+	SquareMatrix<t>::transposed = _t;
+	SquareMatrix<t>::v = new t[9];
+	SquareMatrix<t>::v[0] = e0;
+	SquareMatrix<t>::v[1] = e1;
+	SquareMatrix<t>::v[2] = e2;
+	SquareMatrix<t>::v[3] = e3;
+	SquareMatrix<t>::v[4] = e4;
+	SquareMatrix<t>::v[5] = e5;
+	SquareMatrix<t>::v[6] = e6;
+	SquareMatrix<t>::v[7] = e7;
+	SquareMatrix<t>::v[8] = e8;
+};
 
 
 template<class t> Matrix4<t>::Matrix4() : SquareMatrix<t>() {}
@@ -553,3 +572,31 @@ template<class t> Matrix4<t>::Matrix4(t _defv, bool _t) : SquareMatrix<t>(4, _de
 template<class t> Matrix4<t>::Matrix4(t _v[16], bool _t) : SquareMatrix<t>(4, _v, _t) {};
 template<class t> Matrix4<t>::Matrix4(std::vector<t>& _v, bool _t) : SquareMatrix<t>(4, _v, _t) {};
 template<class t> Matrix4<t>::Matrix4(std::vector<t>* _v, bool _t) : SquareMatrix<t>(4, _v, _t) {};
+template<class t> Matrix4<t>::Matrix4(
+	t e0, t e1, t e2, t e3,
+	t e4, t e5, t e6, t e7,
+	t e8, t e9, t e10, t e11,
+	t e12, t e13, t e14, t e15,
+	bool _t
+) {
+	SquareMatrix<t>::width = 4;
+	SquareMatrix<t>::height = 4;
+	SquareMatrix<t>::transposed = _t;
+	SquareMatrix<t>::v = new t[16];
+	SquareMatrix<t>::v[0] = e0;
+	SquareMatrix<t>::v[1] = e1;
+	SquareMatrix<t>::v[2] = e2;
+	SquareMatrix<t>::v[3] = e3;
+	SquareMatrix<t>::v[4] = e4;
+	SquareMatrix<t>::v[5] = e5;
+	SquareMatrix<t>::v[6] = e6;
+	SquareMatrix<t>::v[7] = e7;
+	SquareMatrix<t>::v[8] = e8;
+	SquareMatrix<t>::v[9] = e9;
+	SquareMatrix<t>::v[10] = e10;
+	SquareMatrix<t>::v[11] = e11;
+	SquareMatrix<t>::v[12] = e12;
+	SquareMatrix<t>::v[13] = e13;
+	SquareMatrix<t>::v[14] = e14;
+	SquareMatrix<t>::v[15] = e15;
+};
