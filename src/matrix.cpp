@@ -2,14 +2,13 @@
 #include "geometry.h"
 
 template<class t> Matrix<t>::~Matrix() {
-	// FIXME : HEAP CORRUPTION
 	delete[] v;
 }
 template<class t> Matrix<t>::Matrix() : v{}, transposed(false) {};
 
 template<class t> Matrix<t>::Matrix(const Matrix<t>& m) : width(m.width), height(m.height), transposed(m.transposed) {
 	v = new t[m.g_length()];
-	std::copy(m.g_v(), m.g_v() + m.g_length(), v);
+	std::copy(m.v, m.v + m.g_length(), v);
 }
 template<class t> Matrix<t>::Matrix(const Matrix<t>& m, t _v[]) : width(m.width), height(m.height), transposed(m.transposed) {
 	v = new t[m.g_length()];
@@ -106,6 +105,18 @@ template<class t> void Matrix<t>::for_each(std::function<void(t&)> callback)
 		callback(v[i]);
 }
 
+// = = = = = = = = = = = = = 
+template<class t> Matrix<t>& Matrix<t>::operator =(const Matrix<t>& o) {
+	width = o.width;
+	height = o.height;
+	transposed = o.transposed;
+
+	delete[] v;
+	v = new t[o.g_length()];
+	std::copy(o.м, o.м + o.g_length(), v);
+
+	return *this;
+}
 
 // + + + + + + + + + + + + + + + + + + + 
 template<class t> Matrix<t> Matrix<t>::operator +(int o) {

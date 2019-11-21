@@ -38,7 +38,7 @@ protected:
 
 	/** Matrix values array */
 	//std::vector<t> v;
-	t* v;
+	t* v = nullptr;
 
 	// Setters
 	/** Increments matrix width */
@@ -108,6 +108,9 @@ public:
 	* Respects `transpose`
 	*/
 	void log();
+
+	// = = = = = = = = = = = = = 
+	Matrix<t>& operator =(const Matrix<t>& o);
 
 	// + + + + + + + + + + + + + + + + + + + 
 	Matrix<t> operator +(int o);
