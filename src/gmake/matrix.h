@@ -1,5 +1,6 @@
-#ifndef __MATRIX_H__
-#define __MATRIX_H__
+//#ifndef __MATRIX_H__
+//#define __MATRIX_H__
+#pragma once
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -10,8 +11,7 @@
 #include <iomanip>      // std::setw
 #include <xmmintrin.h>
 #include <functional>
-#include "geometry.h"
-
+#include "math_structures.h"
 
 class MatrixException : public std::runtime_error {
 public:
@@ -21,8 +21,7 @@ public:
 	MatrixException(std::string msg) :runtime_error(msg.c_str()) {}
 };
 
-template <class t>
-class Matrix
+template <class t> class Matrix
 {
 protected:
 	union {
@@ -96,9 +95,9 @@ public:
 	inline void transpose() { transposed = !transposed; }
 
 	/** Inserts row to matrix */
-	virtual void insert_row(t* rowv, unsigned roww);
+	void insert_row(t* rowv, unsigned roww);
 	///** Inserts col to matrix */
-	virtual void insert_col(t* colv, unsigned colh);
+	void insert_col(t* colv, unsigned colh);
 
 	/** Applies function for every element of matrix array */
 	void for_each(std::function<void(t&)> callback);
@@ -135,7 +134,7 @@ public:
 	/** Perfmorms multiplication of matrix on 2d vector
 	*	Matrix has to be width 2 and height at least 2 (all after 2nd row will be ignored)
 	*/
-	Vec2i operator *(const Vec2i& o) const;
+	Vec2i operator *(const Vec2i& o);
 	/** Perfmorms multiplication of matrix on 2d vector
 	*	Matrix has to be width 2 and height at least 2 (all after 2nd row will be ignored)
 	*/
@@ -143,11 +142,11 @@ public:
 	/** Perfmorms multiplication of matrix on 3d vector
 	*	Matrix has to be width 3 and height at least 3 (all after 3nd row will be ignored)
 	*/
-	Vec3i operator *(const Vec3i& o) const;
+	Vec3i operator *(const Vec3i& o);
 	/** Perfmorms multiplication of matrix on 3d vector
 	*	Matrix has to be width 3 and height at least 3 (all after 3nd row will be ignored)
 	*/
-	Vec3f operator *(const Vec3f& o) const;
+	Vec3f operator *(const Vec3f& o);
 
 	// / / / / / / / / / / / / / / / / / / / / / / / / 
 	Matrix<t> operator /(int o);
@@ -211,6 +210,16 @@ public:
 	* Returns matrix element
 	*/
 	inline t& operator () (unsigned i1, unsigned i2);
+
+	/**
+	* Identity matrix creation function
+	*/
+	static Matrix<t> identity(int dimensions);
+	
+	/**
+	* Converts Matrix to Vec3f
+	*/
+	inline Vec3f toVec3f();
 };
 
 template <class t> std::ostream& operator <<(std::ostream& s, const Matrix<t>& m);
@@ -273,13 +282,13 @@ public:
 	}
 
 	/** Finds minor of matrix */
-	inline long double minor(int r, int c) {
+	long double minor(int r, int c) {
 		return cut_matrix(r, c).determinant();
 	}
 
 	/** Finds algebraic */
 	inline long double complement(int r, int c) {
-		return (((r + c) % 2) ? -1 : 1) * minor(r, c);
+		return (((r + c) % 2) ? -1 : 1) * (minor)(r, c);
 	}
 
 	/** Returns inverse matrix */
@@ -359,4 +368,4 @@ typedef Matrix<int> Mati;
 typedef Matrix<float> Matf;
 
 
-#endif //__MATRIX_H__
+//#endif //__MATRIX_H__

@@ -1,4 +1,4 @@
-#include "matrix.h"
+//#include "matrix.h"
 #include "geometry.h"
 
 template<class t> Matrix<t>::~Matrix() {
@@ -41,6 +41,24 @@ template<class t> Matrix<t>::Matrix(unsigned _w, unsigned _h, const std::vector<
 template<class t> Matrix<t>::Matrix(unsigned _w, unsigned _h, std::vector<t>* _v, bool _t) : width(_w), height(_h), transposed(_t) {
 	v = new t[_w * _h];
 	std::copy(_v->begin(), _v->end(), v);
+}
+
+template<class t> Matrix<t> Matrix<t>::identity(int dimensions)
+{
+	Matrix<t> M(dimensions, dimensions);
+	for (int i = 0; i < dimensions; ++i)
+	{
+		for (int j = 0; j < dimensions; ++j)
+			M(i, j) = (i == j ? 1.f : 0.f);
+	}
+
+	return M;
+}
+
+template<class t> inline Vec3f Matrix<t>::toVec3f()
+{
+	assert(g_w() == 1 && g_h() == 4);
+	return Vec3f((*this)(0, 0) / (*this)(0, 3), (*this)(0, 1) / (*this)(0, 3), (*this)(0, 2) / (*this)(0, 3));
 }
 
 
@@ -202,7 +220,7 @@ template<class t> Matrix<t> Matrix<t>::operator *(Matrix<t>& o)
 
 	return _m;
 }
-template<class t> Vec2i Matrix<t>::operator *(const Vec2i& o) const
+template<class t> Vec2i Matrix<t>::operator *(const Vec2i& o) 
 {
 	assert(g_w() == 2 && g_h() >= 2 && "Inappropriate matrix dimensions for vector multiplication - width must be 2 and heigth at least 2");
 	Vec2i _v = Vec2i();
@@ -222,7 +240,7 @@ template<class t> Vec2f Matrix<t>::operator *(const Vec2f& o) const
 
 	return _v;
 }
-template<class t> Vec3i Matrix<t>::operator *(const Vec3i& o) const
+template<class t> Vec3i Matrix<t>::operator *(const Vec3i& o)
 {
 	assert(g_w() == 3 && g_h() >= 3 && "Inappropriate matrix dimensions for vector multiplication - width must be 3 and heigth at least 3");
 	Vec3i _v = Vec3i();
@@ -232,7 +250,7 @@ template<class t> Vec3i Matrix<t>::operator *(const Vec3i& o) const
 
 	return _v;
 }
-template<class t> Vec3f Matrix<t>::operator *(const Vec3f& o) const
+template<class t> Vec3f Matrix<t>::operator *(const Vec3f& o)
 {
 	assert(g_w() == 3 && g_h() >= 3 && "Inappropriate matrix dimensions for vector multiplication - width must be 3 and heigth at least 3");
 	Vec3f _v = Vec3f();

@@ -3,9 +3,12 @@
 #include <array>
 #include <cmath>
 #include <limits>
+
+#include "matrix.cpp"
+
 #include "tgaimage.h"
 #include "model.h"
-#include "geometry.h"
+#include "gutils.h"
 
 const TGAColor white = TGAColor(255, 255, 255, 255);
 const TGAColor red   = TGAColor(255, 0,   0,   255);
@@ -14,13 +17,16 @@ const TGAColor green = TGAColor(0,   255, 0,   255);
 Model *model = NULL;
 int *zbuffer = NULL;
 
-Vec3f light_dir(0,0,1);
+Vec3f light_dir(0, 0, 1);
+Vec3f camera   (0, 0, 3);
 
-const int width  = 1080;
-const int height = 1080;
+const int width  = 800;
+const int height = 800;
 const int depth  = 255;
 
 const char defaultOBJName[256] = "obj/default.obj";
+
+bool phong = true;
 
 struct FaceData
 {
@@ -66,7 +72,7 @@ void line(Vec3i v0, Vec3i v1, std::vector<Vec3i>& points, int *zbuffer)
 			Vec3i _x  = v0 + (v1 - v0)*k;
 
 //			int idx = _x.x + y*width;
-//			zbuffer[idx] = z; 
+//			zbuffer[idx] = z;
 //			image.set(_x.x,y,color);
 
 			Vec3i _t(_x.x, y ,z);
@@ -100,6 +106,8 @@ void triangle(FaceData data, TGAImage &image, int *zbuffer)
 	Vec3f vn0 = data.normal_coords[0];
 	Vec3f vn1 = data.normal_coords[1];
 	Vec3f vn2 = data.normal_coords[2];
+
+	Vec3f n = (data.world_coords[2] - data.world_coords[0])^(data.world_coords[1] - data.world_coords[0]);
 
 //	vn0.normalize();
 //	vn1.normalize();
@@ -186,8 +194,8 @@ void triangle(FaceData data, TGAImage &image, int *zbuffer)
 						if ((float)(betaVec.x - alphaVec.x) != 0) z = alphaVec.z + (betaVec.z - alphaVec.z) * (x - alphaVec.x)/(float)(betaVec.x - alphaVec.x);
 						vnP.normalize();
 						//vnP = vnP * -1.0f;				
-						float intensity = std::max(0.0f, vnP*light_dir);
-
+						float intensity = (phong == true) ? std::max(0.0f, vnP*light_dir) : std::max(0.0f, n*(light_dir));
+						
 						TGAColor color = model->getTex(uvP);
 						if(zbuffer[idx] < z)
 						{
@@ -211,7 +219,7 @@ void triangle(FaceData data, TGAImage &image, int *zbuffer)
 						if ((float)(alphaVec.x - betaVec.x) != 0) z = betaVec.z + (alphaVec.z - betaVec.z) * (x - betaVec.x)/(float)(alphaVec.x - betaVec.x);
 						vnP.normalize();
 						//vnP = vnP * -1.0f;								
-						float intensity = std::max(0.0f, vnP*light_dir);
+						float intensity = (phong == true) ? std::max(0.0f, vnP*light_dir) : n*(light_dir * (-1));
 
 						TGAColor color = model->getTex(uvP);
 						if(zbuffer[idx]<z)
@@ -323,75 +331,64 @@ void triangle(FaceData data, TGAImage &image, int *zbuffer)
 
 int main(int argc, char** argv)
 {
-		
-		//Load our model
-		if(argc == 2)
-			model = new Model(argv[1]);
-		else
-			model = new Model(defaultOBJName);
+	
+	//Load our model
+	if(argc == 2)
+		model = new Model(argv[1]);
+	else
+		model = new Model(defaultOBJName);
 
-		zbuffer = new int[width*height];
-		for (int i=0; i<width*height; i++)
+	zbuffer = new int[width*height];
+	for (int i=0; i<width*height; i++)
+	{
+		zbuffer[i] = std::numeric_limits<int>::min();
+	}
+	
+	Matrix<float> Projection = Matrix<float>::identity(4);
+	Matrix<float> Viewport = viewport(width / 8, height / 8, width * 3 / 4, height * 3 / 4, depth);
+	Projection(3, 2) = -1.f / camera.z;
+
+	std::cout << Viewport << std::endl;
+	std::cout << Projection << std::endl;
+
+	TGAImage image(width, height, TGAImage::RGB);
+
+	//Here we parse through our model
+	//At first we loop through all faces in our model
+	for (int i=0; i < model->nvfaces(); i++)
+	{	
+		FaceData data;
+		data.vface = model->vface(i);
+		data.tface = model->tface(i);
+		data.nface = model->nface(i);
+
+		//At second we loop through all vertexes of the face, translating them into screen coordinares
+		//according to the TGA configurations ( https://drive.google.com/open?id=1041061LS3waENZWf3ROwKcLRfEUypOc4 )
+      	for (int j=0; j<3; j++)
 		{
-			zbuffer[i] = std::numeric_limits<int>::min();
-		}
-
-
-
-    		TGAImage image(width, height, TGAImage::RGB);
-
-		//Here we parse through our model
-		//At first we loop through all faces in our model
-		for (int i=0; i < model->nvfaces(); i++)
-		{	
-			FaceData data;
-			data.vface = model->vface(i);
-			data.tface = model->tface(i);
-			data.nface = model->nface(i);
-
-    			//std::vector<int> vface = model->vface(i);
-			//std::vector<int> tface = model->tface(i);
-      			//Vec3i screen_coords[3];
-			//Vec3f world_coords[3];
-			//Vec3f tex_coords[3];
-
-			//At second we loop through all vertexes of the face, translating them into screen coordinares
-			//according to the TGA configurations ( https://drive.google.com/open?id=1041061LS3waENZWf3ROwKcLRfEUypOc4 )
-      			for (int j=0; j<3; j++)
-			{
-       	 			Vec3f v  = model->vert(data.vface[j]);
+       	 		Vec3f v  = model->vert(data.vface[j]);
 				Vec2i vt = model->vtex(data.tface[j]);
 				Vec3f vn = model->norm(data.nface[j]);
 
-        			data.screen_coords[j] = Vec3i((v.x+1.)*width/2., (v.y+1.)*height/2., (v.z+1.)*depth/2.);
+				Matrix<float> mV = v.toMatrix();
+				Vec3f tmp = (Viewport * Projection * mV ).toVec3f();
+				//std::cout << tmp << std::endl;
+
+        		data.screen_coords[j] = Vec3i(tmp.x, tmp.y, tmp.z) /*Vec3i((v.x + 1.) * width / 2., (v.y + 1.) * height / 2., (v.z + 1.) * depth / 2.)*/;
 				data.world_coords[j] = v;
 
 				data.tex_coords[j] = vt;
 
 				data.normal_coords[j] = vn;
-				//std::cout<<"f "<<data.vface[j]<<"/"<<data.tface[j]<<std::endl;
-				//std::cout<<"vt "<<vt.x<<"/"<<vt.y<<std::endl<<std::endl;
-      			}
 
-			//Vec3f n = (data.world_coords[2]-data.world_coords[0])^(data.world_coords[1]-data.world_coords[0]);
-      			//n.normalize();
-      			//float intensity = n*light_dir; 
-			//Draw triangle
-      			triangle(data, image/*, TGAColor(intensity*255, intensity*255, intensity*255, 255)*/, zbuffer);
+      	}
+
+		//Draw triangle
+      	triangle(data, image, zbuffer);
 			
-    		}
-
-		/*
-		Vec3i t0[3] = {Vec3i(10, 70,1),   Vec3i(50, 160,1),  Vec3i(70, 80,1)};
-	 	Vec3i t1[3] = {Vec3i(180, 50,1),  Vec3i(150, 1,1),   Vec3i(70, 180,1)};
-	 	Vec3i t2[3] = {Vec3i(180, 150,1), Vec3i(120, 160,1), Vec3i(130, 180,1)};
-		
-		triangle(t0[0], t0[1] ,t0[2], image, red, zbuffer);
-		triangle(t1[0], t1[1] ,t1[2], image, white, zbuffer);
-		triangle(t2[0], t2[1] ,t2[2], image, green, zbuffer);
-		*/
-		image.flip_vertically();
-		image.write_tga_file("output.tga");
-
+    }
+	image.flip_vertically();
+	image.write_tga_file("output.tga");
+	
   	return 0;
 }
