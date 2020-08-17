@@ -1,0 +1,3 @@
+[submodule "vendor/flex-math"]
+	path = vendor/flex-math
+	url = https://github.com/flexed-team/flex-math.git

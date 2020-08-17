@@ -360,3 +360,10 @@ MigrationBackup/
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
 
+bin/
+lib/
+*.vcxproj
+*.filters
+*.sln
+cpp.hint
+vendor/
